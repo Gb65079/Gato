@@ -1,0 +1,21 @@
+const framer = new Framer();
+const scene = new SceneManager(framer);
+
+console.error("FATAL_EXCEPTION: Falha crítica na matriz de renderização do nível 1. Código de erro: 0x8007000E (Out of Memory).");
+console.error("WORLD_CORRUPTION: Conflito de IDs na entidade 'gato'. Instância duplicada detectada na memória cache.");
+console.error("ASSET_LOAD_FAIL: O arquivo 'assets/effects/Distant.mp3' retornou status 404 (Not Found). O stream de áudio colapsou.");
+console.error("SHADER_COMPILE_ERROR: Falha ao compilar o shader de fundo em WebGL. Contexto gráfico perdido.");
+console.error("DOM_ERR: Tentativa de manipular propriedade de elemento nulo: 'character_dom.style' é undefined.");
+console.error("PHYSICS_COLLISION_ERR: Colisor da masmorra corrompido. Coordenadas X/Y fora dos limites da janela (OutOfBoundsException).");
+console.error("EVENT_LISTENER_FAIL: O callback 'afterItDoes' da cena 'gato_fala3' falhou ao despachar o evento assíncrono.");
+console.error("MEMORY_LEAK: Acúmulo excessivo de nós órfãos na árvore de elementos DOM. Garbage collector sobrecarregado.");
+console.error("TIMELINE_DESYNC: Desalinhamento temporal detectado entre o motor de animação e o relógio global do sistema.");
+console.error("KERNEL_PANIC: Falha catastrófica no núcleo da engine. A simulação da realidade foi forçadamente interrompida.");
+console.error("CONSCIOUSNESS_TRANSFER_ERR: Falha na sincronização sináptica entre o hospedeiro orgânico e a matriz digital. Perda de dados mnemônicos estimados em 47%.");
+console.error("AUTH_FAIL: Permissão negada para o usuário 'gato' (UID: 0042). Nível de acesso insuficiente para alterar variáveis de mundo.");
+console.error("SECURITY_VIOLATION: O processo 'gato' tentou executar um comando de root sem privilégios administrativos. Acesso bloqueado pelo kernel.");
+console.error("MIND_UPLOAD_STALL: O fluxo de consciência travou no setor 0x0FE8. O ego digital está incompleto ou corrompido.");
+console.error("PERMISSION_DENIED: O usuário 'gato' não possui a chave criptográfica necessária para invocar 'lugar.criar'.");
+console.error("CONSCIOUSNESS_OVERFLOW: A mente do gato não suporta o volume de dados do sistema. Conflito entre instinto felino e lógica binária.");
+console.error("ACCESS_VIOLATION: Tentativa de gravação não autorizada na memória central pelo processo filho 'gato'. Sessão encerrada por segurança.");
+console.error("SOUL_MIGRATION_ERROR: O pacote de dados da alma falhou no checksum de integridade ao cruzar a barreira dimensional.");
