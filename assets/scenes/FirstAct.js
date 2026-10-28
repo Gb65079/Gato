@@ -12,12 +12,25 @@ framer.register_characters([
 musicBackground.preload = "auto";
 musicBackground.volume = 0.1;
 musicBackground.src = "assets/effects/Distant.mp3";
+const playOpeningMusic = () => {
+    if (!window.katSound || !window.katSound.unlocked || !musicBackground.paused) {
+        return;
+    }
+
+    musicBackground.play().catch((error) => {
+        console.error("Failed to play the opening music.", error);
+    });
+};
+document.addEventListener("kat:audio-unlocked", playOpeningMusic, { once: true });
 musicBackground.onended = () => {
     musicBackground.currentTime = 0;
-    musicBackground.play()
+    playOpeningMusic();
 }
 
-gato.character_dom.style.top = "400px"
+gato.set_position(
+    Math.max(0, window.innerWidth * 0.3),
+    Math.max(0, Math.min(400, window.innerHeight - gato.character_dom.offsetHeight))
+);
 
 scene.create_animation("abduction", {
     characterMainScene: gato,
@@ -30,17 +43,20 @@ scene.create_animation("abduction", {
                     "spawn.png",
                     "spawn1.png",
                     "spawn2.png",
+                    "spawn.png",
+                    "spawn1.png",
+                    "spawn2.png",
                     "spawn3.png",
-                    "chocked.png"
+                    "spawn4.png"
                 ],
-                fps: 3,
+                fps: 5,
                 loop: false
             })
         },
         finishOn: 2000,
         effect: () => {
             scene.push("gato_fala1")
-            musicBackground.play()
+            playOpeningMusic();
         }
       }]
 });
@@ -110,13 +126,19 @@ scene.create_scene("gato_fala1", {
         {
             from: gato,
             to: gato,
-            about: "Hãn?? mas... oque... onde estou... COMO APRENDI A FALAR!?",
-            finishOn: 2000
+            about: "....",
+            finishOn: 5000
         }, 
         {
             from: gato,
             to: gato,
-            about: "Mas... que lugar... estranho?",
+            about: "Mas... onde estou? O que aconteceu?",
+            finishOn: 2000
+        },
+        {
+            from: gato,
+            to: gato,
+            about: "Que lugar estranho...",
             finishOn: 2000
         }
     ],
@@ -131,13 +153,13 @@ scene.create_scene("gato_fala2", {
         {
             from: gato,
             to: gato,
-            about: "ALLOOUUUUUUUUU!!!!!!",
+            about: "Onde estou? Será que isto é um sonho?",
             finishOn: 5000
-        }, 
+        },
         {
             from: gato,
             to: gato,
-            about: "TEM ALGUÉM AIIII!!!???",
+            about: "Tem alguém aí?",
             finishOn: 2000
         }
     ],
@@ -158,25 +180,25 @@ scene.create_scene("gato_fala3", {
         {
             from: gato,
             to: gato,
-            about: "Não tem ninguém por perto... e porque eu falo?",
+            about: "Não tem ninguém por perto... e eu consigo falar?",
             finishOn: 2000
-        }, 
+        },
         {
             from: gato,
             to: gato,
-            about: "É estranho....",
+            about: "Isto é muito estranho...",
             finishOn: 2000
-        }, 
+        },
         {
             from: gato,
             to: gato,
-            about: "Espera... porque me lembro de uma porta?",
+            about: "Espera... por que me lembro de uma porta?",
             finishOn: 2000
-        }, 
+        },
         {
             from: gato,
             to: gato,
-            about: "Espera... isso não é o mundo real?",
+            about: "Espera... isto não é o mundo real?",
             finishOn: 2000
         }
     ],
@@ -198,12 +220,12 @@ scene.create_scene("gato_fala4", {
             from: gato,
             to: gato,
             about: "Aqui....",
-            finishOn: 5000
+            finishOn: 4000
         }, 
         {
             from: gato,
             to: gato,
-            about: "Vou descobrir oque está acontecendo!",
+            about: "Vou descobrir o que está acontecendo!",
             finishOn: 2000
         }
     ],
@@ -212,13 +234,18 @@ scene.create_scene("gato_fala4", {
             w(0, 100, "right", 0)
         );
 
-        window.location.href = "/lobby.html";
+        localStorage.setItem("assets", "{}");
+        assets.save("started", true);
+        window.location.href = "/refuge.html";
     },
     disableControls: true
 });
 
+gato.character_dom.style.display= "none"
+
 setTimeout(()=>{
     
 scene.animate("abduction");
+gato.character_dom.style.display = 'block'
 scene.disable_character_movement();
-},4000);
+},2000);

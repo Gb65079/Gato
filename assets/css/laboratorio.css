@@ -1,0 +1,244 @@
+body.laboratorio-world {
+    position: relative;
+    background-color: #100e18;
+    background-image:
+        linear-gradient(rgba(210, 116, 202, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(210, 116, 202, 0.055) 1px, transparent 1px),
+        repeating-linear-gradient(0deg, #25202c 0 32px, #1b2027 32px 64px, #29222d 64px 96px),
+        linear-gradient(180deg, #34303a, #12131a 78%);
+    background-size: 8px 8px, 8px 8px, 100% 100%, 100% 100%;
+}
+
+.laboratorio-glitch-layer {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+        linear-gradient(90deg, transparent 0 17%, rgba(234, 64, 143, 0.12) 17.2% 17.8%, transparent 18% 79%, rgba(80, 226, 233, 0.11) 79.2% 79.8%, transparent 80%),
+        repeating-linear-gradient(0deg, transparent 0 62px, rgba(0, 0, 0, 0.48) 63px 66px, transparent 67px 122px),
+        linear-gradient(180deg, rgba(12, 8, 20, 0.56), transparent 45%, rgba(5, 9, 15, 0.42));
+    animation: laboratorio-scan 3.6s steps(2, end) infinite;
+}
+
+.laboratorio-machines {
+    position: fixed;
+    z-index: 1;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.lab-machine {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    border: 7px solid #17141f;
+    background:
+        linear-gradient(90deg, transparent 0 15%, rgba(255, 255, 255, 0.06) 16% 18%, transparent 19% 82%, rgba(255, 255, 255, 0.04) 83% 85%, transparent 86%),
+        linear-gradient(180deg, #62536d 0 8%, #322b3b 9% 74%, #171a21 75% 90%, #51435a 91%);
+    box-shadow:
+        0 10px 0 #0b0c12,
+        8px 12px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 0 4px rgba(194, 152, 211, 0.18);
+    image-rendering: pixelated;
+}
+
+.lab-machine-main {
+    top: 24%;
+    left: 50%;
+    width: clamp(210px, 24vw, 330px);
+    height: clamp(190px, 31vh, 285px);
+    transform: translateX(-50%);
+}
+
+.lab-machine-side {
+    top: 38%;
+    width: clamp(140px, 17vw, 220px);
+    height: clamp(155px, 24vh, 220px);
+}
+
+.lab-machine-side-left {
+    left: 7%;
+    transform: rotate(-2deg);
+}
+
+.lab-machine-side-right {
+    right: 7%;
+    transform: rotate(2deg);
+}
+
+.lab-machine-screen {
+    position: absolute;
+    top: 12%;
+    left: 16%;
+    width: 68%;
+    height: 45%;
+    border: 6px solid #11131a;
+    background:
+        repeating-linear-gradient(0deg, transparent 0 13px, rgba(235, 88, 204, 0.38) 14px 16px),
+        linear-gradient(110deg, #14272c, #352143 48%, #16282c);
+    box-shadow: inset 0 0 15px rgba(53, 228, 227, 0.35), 0 0 12px rgba(231, 78, 205, 0.34);
+    animation: lab-screen-flicker 1.7s steps(2, end) infinite;
+}
+
+.lab-code-sprite {
+    position: absolute;
+    z-index: 1;
+    right: -20%;
+    bottom: -18%;
+    width: 74%;
+    height: 64%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    opacity: 0.84;
+    filter:
+        drop-shadow(4px 0 0 rgba(239, 62, 140, 0.68))
+        drop-shadow(-4px 0 0 rgba(69, 218, 232, 0.6));
+    animation: lab-code-shift 2.8s steps(2, end) infinite;
+}
+
+.lab-code-sprite-main {
+    right: -24%;
+    bottom: -25%;
+    width: 72%;
+    height: 74%;
+}
+
+.lab-machine-controls {
+    position: absolute;
+    bottom: 8%;
+    left: 22%;
+    width: 56%;
+    height: 13%;
+    border: 3px solid #13131b;
+    background:
+        linear-gradient(90deg, #bd5e9d 0 12%, transparent 13% 24%, #68cbd0 25% 36%, transparent 37% 62%, #ad91ca 63% 76%, transparent 77% 88%, #d5b06e 89%);
+    box-shadow: 0 4px 0 #100f16;
+}
+
+.lab-cable {
+    position: absolute;
+    width: 31vw;
+    height: 17vh;
+    border: 5px dashed rgba(12, 12, 18, 0.88);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    transform: rotate(-16deg);
+}
+
+.lab-cable-one {
+    top: 58%;
+    left: 5%;
+}
+
+.lab-cable-two {
+    top: 60%;
+    right: 4%;
+    transform: rotate(22deg);
+}
+
+.lab-script {
+    position: absolute;
+    z-index: 2;
+    width: var(--script-width, 82px);
+    height: var(--script-height, 52px);
+    padding: 8px;
+    border: 3px solid #26202f;
+    background:
+        repeating-linear-gradient(0deg, transparent 0 6px, rgba(43, 31, 56, 0.76) 7px 9px),
+        linear-gradient(135deg, #dbc9d0, #9b8a9f);
+    box-shadow: 4px 5px 0 rgba(6, 8, 13, 0.68);
+    transform: translate(-50%, -50%) rotate(var(--script-rotation, 0deg));
+    pointer-events: none;
+    animation: lab-paper-glitch 2.2s steps(2, end) infinite;
+}
+
+.lab-script::before,
+.lab-script::after {
+    position: absolute;
+    right: 8px;
+    left: 8px;
+    height: 3px;
+    background: #65a8a9;
+    content: "";
+}
+
+.lab-script::before {
+    top: 12px;
+}
+
+.lab-script::after {
+    top: 27px;
+    right: 24px;
+    background: #b45e96;
+}
+
+.laboratorio-world .portal-object {
+    z-index: 4 !important;
+    filter:
+        drop-shadow(3px 0 0 rgba(239, 62, 140, 0.48))
+        drop-shadow(-3px 0 0 rgba(69, 218, 232, 0.42));
+}
+
+.laboratorio-world .portal-object .pressToTalk {
+    border-color: #d48eca;
+    background: #21182c;
+    box-shadow: 4px 4px 0 #090a10, inset 2px 2px 0 #694a72;
+}
+
+.laboratorio-world .framer-glitch-square {
+    z-index: 3 !important;
+}
+
+@keyframes laboratorio-scan {
+    0%, 92%, 100% { opacity: 0.65; transform: translateX(0); }
+    94% { opacity: 1; transform: translateX(3px); }
+    97% { opacity: 0.48; transform: translateX(-2px); }
+}
+
+@keyframes lab-screen-flicker {
+    0%, 100% { filter: brightness(0.8); }
+    50% { filter: brightness(1.35) hue-rotate(24deg); }
+}
+
+@keyframes lab-code-shift {
+    0%, 90%, 100% { transform: translate(0); }
+    93% { transform: translate(4px, -2px); }
+    96% { transform: translate(-3px, 1px); }
+}
+
+@keyframes lab-paper-glitch {
+    0%, 92%, 100% { filter: none; }
+    94% { filter: hue-rotate(70deg) brightness(1.25); }
+    97% { filter: hue-rotate(-45deg); }
+}
+
+@media (max-width: 650px) {
+    .lab-machine-main {
+        top: 25%;
+    }
+
+    .lab-machine-side-left {
+        left: -8%;
+    }
+
+    .lab-machine-side-right {
+        right: -8%;
+    }
+
+    .lab-script {
+        transform: translate(-50%, -50%) scale(0.72) rotate(var(--script-rotation, 0deg));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .laboratorio-glitch-layer,
+    .lab-machine-screen,
+    .lab-code-sprite,
+    .lab-script {
+        animation: none;
+    }
+}

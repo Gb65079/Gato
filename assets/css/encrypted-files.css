@@ -1,0 +1,113 @@
+.encrypted-inventory {
+    position: fixed;
+    z-index: 9997;
+    top: 14px;
+    left: 14px;
+    display: grid;
+    gap: 7px;
+    min-width: 154px;
+    padding: 9px 11px;
+    border: 3px solid #e0b8ff;
+    color: #f7edff;
+    background: rgba(26, 15, 36, 0.94);
+    box-shadow: 3px 3px 0 #0b0711;
+    font: bold 12px "Courier New", Courier, monospace;
+    letter-spacing: 0.04em;
+}
+
+.encrypted-inventory-slots {
+    display: flex;
+    gap: 6px;
+}
+
+.encrypted-admin-status {
+    color: #a7f3b4;
+    font-size: 10px;
+}
+
+.encrypted-admin-status.is-lost {
+    color: #ff9a9a;
+}
+
+.encrypted-inventory-slot {
+    display: grid;
+    width: 25px;
+    height: 25px;
+    place-items: center;
+    border: 2px dashed #9d7cad;
+    color: #b7a4c1;
+    background: #160d20;
+}
+
+.encrypted-inventory-slot.is-collected {
+    border-style: solid;
+    border-color: #a7f3b4;
+    color: #142719;
+    background: #a7f3b4;
+}
+
+.encrypted-file {
+    position: fixed;
+    z-index: 9996;
+    top: 48%;
+    left: 50%;
+    display: grid;
+    width: 146px;
+    justify-items: center;
+    gap: 7px;
+    padding: 10px;
+    transform: translate(-50%, -50%);
+    border: 3px solid #a7f3b4;
+    color: #f7edff;
+    background: rgba(20, 33, 27, 0.95);
+    box-shadow: 4px 4px 0 #0b0711, 0 0 20px rgba(167, 243, 180, 0.6);
+    font: bold 12px "Courier New", Courier, monospace;
+    text-align: center;
+    cursor: pointer;
+    animation: encrypted-file-pulse 1.2s steps(2, end) infinite;
+}
+
+.encrypted-file:hover,
+.encrypted-file:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+    background: #315440;
+}
+
+.encrypted-file img {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.encrypted-file-prompt {
+    color: #a7f3b4;
+    font-size: 10px;
+}
+
+@keyframes encrypted-file-pulse {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+    50% { transform: translate(-50%, -50%) translateY(-5px); }
+}
+
+@media (max-width: 600px) {
+    .encrypted-inventory {
+        top: 8px;
+        left: 8px;
+        min-width: 120px;
+        padding: 7px;
+        font-size: 10px;
+    }
+
+    .encrypted-file {
+        top: 52%;
+        width: 128px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .encrypted-file {
+        animation: none;
+    }
+}

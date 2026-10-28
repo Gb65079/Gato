@@ -1,0 +1,182 @@
+# Jogo: KAT — Roteiro expandido
+
+## Sinopse
+
+[KAT] é um gato que estava deitado sobre o teclado de seu dono, um programador, quando é teleportado para um mundo abandonado e corrompido. Para encontrar uma saída, ele precisará explorar esse universo, ajudar seus habitantes e aprender noções básicas de programação.
+
+Ao longo da jornada, o jogador resolverá minigames curtos e visuais: organizar comandos, completar trechos de código, identificar condições e corrigir erros simples. Cada desafio ajuda a história a avançar e ensina um conceito de lógica de programação sem exigir conhecimento prévio.
+
+---
+
+## TAKE 1 — Abduction
+
+[KAT] surge em um mundo estranho, sem entender como chegou ali. O cenário parece incompleto: há caminhos interrompidos, objetos sem textura e partes do chão que desaparecem no vazio.
+
+O jogador aprende os controles básicos enquanto guia [KAT] até a área *Refúgio*.
+
+**Interação simples:** andar, observar e interagir com um objeto.
+
+**Objetivo narrativo:** apresentar o mundo quebrado e mostrar que algo está errado.
+
+## TAKE 2 — Refugiate
+
+[KAT] chega ao *Refúgio*, uma área preservada onde vários NPCs se protegem das falhas do mundo. Eles explicam que certas regiões deixaram de funcionar e que ninguém sabe como sair dali.
+
+[KAT] ouve falar de [Chromicos], o guardião do mundo, e segue até a *Sala Binária* para encontrá-lo.
+
+**Interação simples:** conversar com NPCs e seguir um marcador até a próxima área.
+
+**Objetivo narrativo:** apresentar o problema central e apontar o próximo destino.
+
+## TAKE 3 — BinaryRoom
+
+[KAT] encontra [Chromicos], o guardião do mundo e um programador experiente. Ele explica que o universo foi criado por código, mas algumas partes foram danificadas. Para encontrar uma saída, [KAT] precisará aprender a compreender e corrigir pequenos comandos.
+
+[Chromicos] apresenta [Ben], seu aprendiz, que ajudará [KAT] durante a jornada. Antes de partir, Ben mostra uma tela com três comandos fora de ordem. Ao organizá-los, uma pequena porta se abre.
+
+**Minigame 1 — Coloque na ordem**
+- **Conceito:** sequência lógica.
+- **Como funciona:** o jogador arrasta três comandos para a ordem correta, por exemplo: `andar até a porta` → `abrir a porta` → `entrar`.
+- **Aprendizado:** um programa executa instruções em uma ordem; trocar a ordem pode mudar o resultado.
+
+Depois do teste, Ben leva [KAT] até um canto da sala, onde um NPC guarda um arquivo de administrador. O arquivo, porém, está bloqueado.
+
+## TAKE 4 — TheMarketPlace
+
+[Ben] e [KAT] vão até o *Bazar Oculto*, onde encontram [Celio], um robô que vende peças e scripts. Celio explica que pode ajudar a restaurar algumas funções, mas seus scripts precisam ser montados corretamente.
+
+Para liberar uma ferramenta, [KAT] precisa completar uma instrução simples.
+
+**Minigame 2 — Complete o comando**
+- **Conceito:** comandos e parâmetros.
+- **Como funciona:** aparece uma frase como `ABRIR ( ___ )`, e o jogador escolhe entre opções visuais, como `porta`, `som` ou `luz`. A imagem mostra qual objeto deve ser aberto.
+- **Aprendizado:** um comando precisa receber a informação certa para realizar a ação desejada.
+
+Celio entrega uma pequena ferramenta que permitirá interagir com mecanismos danificados. [KAT] percebe que recuperar funções perdidas pode ser o caminho para restaurar suas permissões.
+
+## TAKE 5 — Garden
+
+No *Jardim*, os glitches corrompem a vegetação e escondem a passagem. Com a ferramenta que Célio vendeu, [Ben] abre um script para removê-los.
+
+**Minigame 3 — Limpe os glitches**
+- **Conceito:** completar e executar um script.
+- **Como funciona:** o jogador preenche o comando que falta em `EXECUTAR( ___ )` e executa `REMOVER_GLITCHS`.
+- **Aprendizado:** um script executa uma ação que altera o estado do cenário.
+
+Os glitches desaparecem e [KAT] encontra o primeiro fragmento de código. O texto está corrompido e não pode ser lido por completo.
+
+## TAKE 6 — DeepStretch
+
+Ao atravessar a passagem, [KAT] chega à *Lacuna Profunda*, uma área isolada do restante do mundo. Lá, encontra [Piona], uma professora que consegue decifrar fragmentos de código.
+
+[KAT] entrega a ela o primeiro fragmento. Piona explica que são necessários quatro fragmentos para reconstruir o comando de saída e que cada um contém uma parte diferente da solução. Sempre que encontrar um novo fragmento, [KAT] poderá voltar até ela para decifrá-lo.
+
+Piona também ensina que, às vezes, um comando só deve ser executado quando uma condição é atendida.
+
+**Minigame 4 — Se acontecer, faça**
+- **Conceito:** condição simples (`se... então`).
+- **Como funciona:** o jogador escolhe a ação correta para uma situação visual: `SE a ponte estiver ligada, ENTÃO atravesse`; se estiver desligada, é preciso ligar a energia primeiro.
+- **Aprendizado:** condições ajudam o programa a decidir o que fazer de acordo com a situação.
+
+Piona indica que pode haver outro fragmento escondido no *Refúgio*.
+
+## TAKE 7 — Refugiate: O objeto escondido
+
+[Ben] e [KAT] retornam ao *Refúgio* e perguntam aos NPCs se alguém viu outro fragmento. Durante a busca, Ben percebe que um objeto aparece por um instante e depois some. Ele abre a ferramenta de depuração para tentar descobrir o que está acontecendo.
+
+**Minigame 5 — Encontre o erro**
+- **Conceito:** depuração.
+- **Como funciona:** o jogador vê uma sequência curta de comandos. Um deles está errado — por exemplo, o personagem tenta atravessar uma ponte antes de ligá-la. O jogador seleciona o comando que precisa ser corrigido.
+- **Aprendizado:** depurar é procurar e corrigir erros, em vez de começar tudo de novo.
+
+Após corrigirem o comando, o objeto escondido fica visível. Dentro dele, encontram o segundo fragmento de código. Ben percebe que a ferramenta de depuração também pode revelar caminhos ocultos.
+
+## TAKE 8 — Lab
+
+Ben leva [KAT] até o *Laboratório*, onde procura uma extensão que facilite sua locomoção. Ele encontra uma ferramenta de teletransporte, mas ela repete a mesma ação várias vezes sem necessidade.
+
+Para ajustá-la, [KAT] precisa ajudar Ben a simplificar a sequência.
+
+**Minigame 6 — Repita a ação**
+- **Conceito:** repetição.
+- **Como funciona:** em vez de colocar `andar, andar, andar, andar`, o jogador escolhe `repetir 4 vezes: andar`.
+- **Aprendizado:** laços de repetição permitem executar a mesma instrução várias vezes sem escrevê-la de novo.
+
+Com a extensão funcionando, eles alcançam uma plataforma antes inacessível e encontram o terceiro fragmento de código.
+
+## TAKE 9 — Teleport
+
+Usando a extensão, [Ben] e [KAT] atravessam alguns pontos do mundo que antes estavam fora de alcance. O teletransporte, porém, só funciona em plataformas com um sinal ativo.
+
+**Minigame 7 — Escolha o caminho válido**
+- **Conceito:** condições e lógica.
+- **Como funciona:** o jogador observa duas ou três plataformas e escolhe aquela que atende à regra mostrada, como `teletransportar apenas se o sinal estiver verde`.
+- **Aprendizado:** antes de executar uma ação, o programa pode verificar se uma condição é verdadeira.
+
+Ao ativarem o sinal correto, eles chegam à tela em que [KAT] apareceu pela primeira vez. Lá, encontram o quarto e último fragmento de código.
+
+## TAKE 10 — DeepStretch: Decifrando os fragmentos
+
+[Ben] e [KAT] retornam à *Lacuna Profunda* para entregar os fragmentos restantes a [Piona]. Ela os decifra e explica, de forma simples, o que cada parte faz.
+
+Os fragmentos não formam ainda uma solução completa: falta colocá-los na ordem correta e verificar se não há comandos incompatíveis.
+
+**Minigame 8 — Monte o código**
+- **Conceito:** combinar etapas e revisar a lógica.
+- **Como funciona:** o jogador organiza quatro blocos visuais na ordem correta. Cada bloco representa uma ação aprendida anteriormente.
+- **Aprendizado:** um programa pode ser formado por partes menores, e a ordem dessas partes importa.
+
+Com os quatro fragmentos organizados, Piona confirma que o código está quase pronto. Para executá-lo, eles precisam voltar até [Chromicos].
+
+## TAKE 11 — BinaryRoom: Preparando a saída
+
+[Ben] e [KAT] retornam à *Sala Binária*. [Chromicos] analisa o código reconstruído e avisa que ainda existe um pequeno erro: uma instrução tenta ser executada antes de a condição necessária estar pronta.
+
+Em vez de entregar a resposta, [Chromicos] pede que [KAT] revise a sequência.
+
+**Minigame 9 — Corrija a ordem**
+- **Conceito:** revisar e corrigir um algoritmo.
+- **Como funciona:** o jogador identifica qual de três instruções precisa mudar de lugar para que a sequência funcione.
+- **Aprendizado:** testar e revisar faz parte da programação; errar é uma oportunidade de encontrar o que precisa ser ajustado.
+
+Quando o erro é corrigido, [Chromicos] abre o acesso ao terminal final.
+
+## TAKE 12 — FinalCommit
+
+[Chromicos] abre o **TERMINAL**. Com a ajuda do jogador, [KAT] insere os comandos finais usando os conceitos aprendidos durante a jornada: ordem das instruções, comandos, condições, repetição e correção de erros.
+
+**Minigame final — Execute o programa**
+- O jogador organiza os blocos finais e aperta **Executar**.
+- Se houver um erro, o terminal destaca o bloco problemático e permite tentar novamente.
+- Quando a sequência está correta, o código é executado e a saída é ativada.
+
+A tela fica branca, e os personagens começam a desaparecer. Antes de sumirem, [Ben] e [Chromicos] se despedem de [KAT].
+
+[KAT] acorda assustado sobre o teclado, olha ao redor, percebe que tudo não passou de um sonho e volta a dormir. Na tela do computador, aparece a mensagem:
+
+**“Simulação terminada por: KAT”.**
+
+---
+
+## Personagens importantes
+
+- **KAT:** um gato real e protagonista da história.
+- **Chromicos:** guardião do mundo, um NPC inteligente e programador que apresenta a [KAT] a história daquele universo.
+- **Ben:** um menino NPC e aprendiz de [Chromicos]. Ajuda [KAT] e consegue invocar telas de código.
+- **Celio:** um robô vendedor de recursos, peças e scripts, capaz de manipular objetos.
+- **Piona:** uma NPC que atua como professora e guia, ajudando [KAT] a decifrar os fragmentos de código.
+
+## Diretrizes para os minigames
+
+- Usar frases curtas, ícones e blocos visuais, evitando exigir que o jogador digite código real.
+- Apresentar apenas uma ideia nova por desafio.
+- Permitir tentativas novamente sem punição pesada.
+- Quando o jogador errar, explicar brevemente o motivo e dar uma dica.
+- Aumentar a dificuldade aos poucos, reutilizando conceitos já ensinados.
+- Fazer com que cada desafio resolvido tenha um efeito visível no mundo, como abrir uma porta, consertar uma ponte ou revelar um objeto.
+
+## Observações de escrita
+
+- `*` — indica uma cena ou área.
+- `[]` — indica um personagem ou NPC.
+- Os nomes das cenas em inglês foram mantidos como identificadores de trabalho.

@@ -1,0 +1,183 @@
+KAT — DESAFIOS DE LÓGICA DE PROGRAMAÇÃO
+Documento compacto de implementação dos minigames
+================================================
+
+FORMATO
+- O código abaixo é pseudocódigo didático, não uma linguagem específica.
+- O aluno completa apenas as lacunas com opções visuais; não precisa digitar nem reorganizar o código.
+- Em cada desafio: apresentar a situação, permitir tentativa e mostrar uma dica curta.
+
+FASE 1 — A PORTA MISTERIOSA
+Cena: TAKE 3 — Sala Binária
+Conceito: Sequência lógica (a ordem das instruções importa).
+Desafio: Completar as instruções que faltam para entrar pela porta.
+
+CÓDIGO:
+    ___
+    ABRIR_PORTA
+    ___
+
+SOLUÇÃO:
+    ANDAR_ATE_PORTA
+    ABRIR_PORTA
+    ENTRAR
+
+Feedback: “Boa! O programa segue uma ordem para funcionar.”
+
+FASE 2 — A FERRAMENTA DO CELIO
+Cena: TAKE 4 — Bazar Oculto
+Conceito: Comando + parâmetro (a ação precisa do alvo certo).
+Desafio: Completar ABRIR(___) escolhendo o objeto mostrado.
+
+CÓDIGO:
+    ABRIR(alvo)
+
+OPÇÕES:
+    alvo = PORTA
+    alvo = LUZ
+    alvo = SOM
+
+SOLUÇÃO:
+    ABRIR(PORTA)
+
+Feedback: “O comando recebeu o alvo certo!”
+
+FASE 3 — GLITCHS NO JARDIM
+Cena: TAKE 5 — Jardim
+Conceito: Executar um script.
+Desafio: Completar e executar o comando que remove os glitches do Jardim.
+
+CÓDIGO:
+    EXECUTAR(___)
+
+SOLUÇÃO:
+    EXECUTAR(REMOVER_GLITCHS)
+
+Feedback: “Script executado! Os glitches foram removidos.”
+
+FASE 4 — A REGRA DA PIONA
+Cena: TAKE 6 — Lacuna Profunda
+Conceito: Condição SE... ENTÃO.
+Desafio: Liberar o portal de retorno depois de confirmar que o primeiro fragmento foi coletado.
+
+CÓDIGO:
+    SE fragmento_1_coletado ENTÃO
+        ___
+
+SOLUÇÃO:
+        LIBERAR_PORTAL
+
+Feedback: “Antes de agir, verifica a condição!”
+
+FASE 5 — O OBJETO INVISÍVEL
+Cena: TAKE 7 — Refúgio
+Conceito: Depuração (encontrar e corrigir um erro).
+Desafio: Corrigir o comando de depuração para revelar o arquivo oculto.
+
+CÓDIGO:
+    LOCALIZAR_ARQUIVO
+    ___
+    FIM_DEPURACAO
+
+SOLUÇÃO:
+    MOSTRAR_ARQUIVO
+
+Feedback: “Encontraste o erro! Não precisaste de começar do zero.”
+
+FASE 6 — O TELETRANSPORTE REPETITIVO
+Cena: TAKE 8 — Laboratório
+Conceito: Repetição (executar a mesma ação várias vezes).
+Desafio: Substituir quatro comandos iguais por um ciclo simples.
+
+CÓDIGO REPETIDO:
+    TELETRANSPORTAR
+    TELETRANSPORTAR
+    TELETRANSPORTAR
+    TELETRANSPORTAR
+
+VERSÃO COM REPETIÇÃO:
+    REPETIR 4 VEZES
+        TELETRANSPORTAR
+    FIM_REPETIR
+
+Feedback: “Uma instrução pode ser repetida sem ser escrita várias vezes.”
+
+FASE 7 — O SINAL CORRETO
+Cena: TAKE 9 — Teleport
+Conceito: Condição verdadeira/falsa.
+Desafio: Escolher a plataforma cujo sinal está verde.
+
+CÓDIGO:
+    SE sinal == VERDE ENTÃO
+        TELETRANSPORTAR
+    FIM_SE
+
+Regra do minigame: apresentar 2 ou 3 plataformas; só uma cumpre a condição.
+
+Feedback: “A ação só acontece quando a regra é verdadeira.”
+
+FASE 8 — OS QUATRO FRAGMENTOS
+Cena: TAKE 10 — Lacuna Profunda
+Conceito: Montar um algoritmo com etapas conhecidas.
+Desafio: Completar as lacunas do programa de saída, mantendo as instruções fixas na ordem apresentada.
+
+ CÓDIGO:
+    SE sinal == VERDE:
+        ___
+        ___
+        ___
+
+SOLUÇÃO:
+    LIGAR_TERMINAL
+    INSERIR_CODIGO
+    EXECUTAR_PROGRAMA
+
+Feedback: “Juntaste partes simples para criar um programa completo.”
+
+FASE 9 — O ÚLTIMO ERRO
+Cena: TAKE 11 — Sala Binária
+Conceito: Rever e corrigir a ordem de um algoritmo.
+Desafio: Completar a linha que executa a saída depois da validação.
+
+CÓDIGO:
+    SE codigo_pronto ENTÃO
+        VALIDAR_CODIGO
+        ___
+    FIM_SE
+
+SOLUÇÃO:
+    EXECUTAR_SAIDA
+
+Feedback: “Testar e rever também faz parte de programar.”
+
+FASE 10 — FINALCOMMIT
+Cena: TAKE 12 — Terminal final
+Conceitos: Sequência + condição + repetição + depuração.
+Desafio: Completar as lacunas e executar um programa curto usando conceitos já conhecidos.
+
+EXEMPLO DE SOLUÇÃO:
+    LIGAR_TERMINAL
+    SE sinal == VERDE ENTÃO
+        REPETIR 2 VEZES
+            REPARAR_CAMINHO
+        FIM_REPETIR
+        VALIDAR_CODIGO
+        EXECUTAR_SAIDA
+    SENÃO
+        MOSTRAR_DICA("Verifica o sinal!")
+    FIM_SE
+
+Regra do minigame:
+- O jogador completa as lacunas e carrega em EXECUTAR.
+- Uma resposta errada, enquanto o acesso de administrador está ativo, faz o jogador perdê-lo; ele pode voltar ao Bazar Oculto e falar com Célio, que confia em Ben e restaura o acesso sem custo.
+- Lacunas não preenchidas não contam como erro.
+- Se estiver correto, ativar a saída e concluir a história.
+
+================================================
+NOTAS DE IMPLEMENTAÇÃO
+- Manter cada desafio curto: cerca de 30 segundos a 2 minutos.
+- Ensinar apenas um conceito novo por desafio comum.
+- Usar ícones, campos de seleção e frases curtas.
+- Em cada erro, dar uma dica útil; se o acesso de administrador estava ativo, informar que foi perdido.
+- Fazer a solução causar uma mudança visível no cenário.
+- Os nomes em MAIÚSCULAS representam ações visuais do jogo.

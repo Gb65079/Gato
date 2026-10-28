@@ -1,0 +1,129 @@
+body.marketplace-world {
+    position: relative;
+    background-color: #1c211b;
+    background-image:
+        linear-gradient(rgba(205, 219, 169, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(205, 219, 169, 0.045) 1px, transparent 1px),
+        repeating-linear-gradient(0deg, #343a2d 0 28px, #292f27 28px 56px, #3a3b2d 56px 84px),
+        linear-gradient(180deg, #4a4a35, #1b211d 78%);
+    background-size: 8px 8px, 8px 8px, 100% 100%, 100% 100%;
+}
+
+.marketplace-atmosphere {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(221, 174, 101, 0.12), transparent 58%),
+        repeating-linear-gradient(0deg, transparent 0 73px, rgba(8, 12, 10, 0.24) 74px 77px, transparent 78px 126px),
+        linear-gradient(90deg, rgba(10, 14, 12, 0.36), transparent 18% 82%, rgba(10, 14, 12, 0.36));
+}
+
+.marketplace-junk {
+    position: absolute;
+    z-index: 1;
+    width: var(--junk-width, 210px);
+    height: var(--junk-height, 118px);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    image-rendering: pixelated;
+}
+
+.marketplace-junk-pile {
+    background:
+        linear-gradient(135deg, transparent 0 12%, #55594a 12% 23%, transparent 23% 100%),
+        linear-gradient(45deg, transparent 0 18%, #756247 18% 34%, transparent 34% 100%),
+        linear-gradient(0deg, transparent 0 23%, #272d2a 23% 39%, transparent 39% 100%),
+        linear-gradient(90deg, transparent 0 10%, #4a5146 10% 29%, #303a38 29% 52%, #786447 52% 73%, #343b32 73% 91%, transparent 91%),
+        linear-gradient(0deg, transparent 0 55%, #222927 55% 72%, transparent 72%),
+        linear-gradient(90deg, transparent 0 21%, #565543 21% 42%, #293330 42% 69%, #5b5440 69% 82%, transparent 82%);
+    filter: drop-shadow(0 8px 0 rgba(8, 11, 9, 0.58));
+}
+
+.marketplace-junk-pile::before {
+    position: absolute;
+    inset: 12% 8% 14%;
+    background:
+        linear-gradient(90deg, transparent 0 12%, #a95f39 12% 21%, transparent 21% 63%, #a1a18a 63% 70%, transparent 70%),
+        linear-gradient(0deg, transparent 0 24%, #a9a084 24% 31%, transparent 31% 62%, #647b73 62% 70%, transparent 70%);
+    content: "";
+    clip-path: polygon(0 55%, 8% 31%, 20% 36%, 28% 10%, 45% 16%, 51% 39%, 68% 20%, 81% 29%, 100% 48%, 95% 100%, 5% 100%);
+    opacity: 0.72;
+}
+
+.marketplace-junk-electronics {
+    width: var(--junk-width, 120px);
+    height: var(--junk-height, 74px);
+}
+
+.marketplace-junk-electronics::before {
+    position: absolute;
+    inset: 10% 8%;
+    border: 5px solid #171e1d;
+    background:
+        linear-gradient(90deg, transparent 0 12%, #739086 13% 17%, transparent 18% 83%, #aa6c42 84% 89%, transparent 90%),
+        linear-gradient(0deg, #283431 0 20%, #607469 21% 27%, #242c2b 28% 75%, #789083 76% 82%, #1a2221 83%);
+    box-shadow: 5px 5px 0 #111615, inset 0 0 0 3px rgba(179, 195, 159, 0.18);
+    content: "";
+    clip-path: polygon(5% 0, 94% 5%, 100% 88%, 84% 100%, 0 92%);
+}
+
+.marketplace-junk-electronics::after {
+    position: absolute;
+    top: 31%;
+    right: 23%;
+    width: 27%;
+    height: 22%;
+    border: 3px solid #111615;
+    background: #bd9560;
+    box-shadow: 4px 4px 0 rgba(9, 12, 11, 0.66);
+    content: "";
+    transform: rotate(-7deg);
+}
+
+.marketplace-junk-scrap {
+    width: var(--junk-width, 150px);
+    height: var(--junk-height, 90px);
+}
+
+.marketplace-junk-scrap::before,
+.marketplace-junk-scrap::after {
+    position: absolute;
+    content: "";
+    filter: drop-shadow(4px 5px 0 rgba(10, 13, 11, 0.62));
+}
+
+.marketplace-junk-scrap::before {
+    inset: 20% 5% 18%;
+    background:
+        linear-gradient(0deg, transparent 0 31%, #94734d 32% 42%, transparent 43%),
+        linear-gradient(90deg, #4e5d54 0 18%, #9e7147 18% 34%, #4d5650 34% 57%, #77745d 57% 76%, #3c4943 76%);
+    clip-path: polygon(0 28%, 19% 28%, 19% 0, 37% 0, 37% 28%, 65% 28%, 65% 5%, 83% 5%, 83% 28%, 100% 28%, 94% 100%, 8% 100%);
+}
+
+.marketplace-junk-scrap::after {
+    top: 0;
+    left: 44%;
+    width: 14%;
+    height: 83%;
+    background: #7d8b73;
+    clip-path: polygon(22% 0, 100% 5%, 72% 100%, 0 92%);
+    transform: rotate(21deg);
+}
+
+.marketplace-world .portal-object {
+    filter: drop-shadow(0 8px 0 rgba(9, 12, 10, 0.65)) saturate(0.8);
+}
+
+.marketplace-world .portal-object .pressToTalk {
+    border-color: #c4ad78;
+    background: #25271d;
+    box-shadow: 4px 4px 0 #10130f, inset 2px 2px 0 #5b5940;
+}
+
+@media (max-width: 600px) {
+    .marketplace-junk {
+        transform: translate(-50%, -50%) scale(0.72);
+    }
+}

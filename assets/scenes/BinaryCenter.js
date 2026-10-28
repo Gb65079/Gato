@@ -1,231 +1,295 @@
 const gato = new Sprite();
 const chromicos = new Sprite();
+const ben = new Sprite();
+const admKey = new Sprite();
 
 gato.register_character("Gato", "gato", false);
 chromicos.register_character("Chromicos", "chromicos", true);
+ben.register_character("Ben", "ben", false);
+admKey.register_character("ADMKEY", "portador_de_arquivo", true)
+admKey.character_dom.style.display = "none";
 
 framer.set_character_main_scene(gato);
 framer.set_controls_to_character();
 framer.register_characters([
     gato,
+    ben,
+    admKey,
     chromicos
 ]);
+const binaryProgress = assets.get("completedChallenges") || [];
+teleportPoints.createStoryPortal({
+    direction: "left",
+    destinations: [
+        {
+            to: "refuge.html",
+            label: "Refúgio",
+            canTeleport: () => assets.get("talked-with-biro") === true
+        },
+        {
+            to: "final-commit.html",
+            label: "Commit Final",
+            canTeleport: () => assets.get("completedChallenges")?.includes(9) === true
+        }
+    ],
+    canTeleport: () => {
+        const completed = assets.get("completedChallenges") || [];
+        if (completed.includes(8) && !completed.includes(9)) {
+            return false;
+        }
+        const canReachAnyDestination =
+            assets.get("talked-with-biro") === true ||
+            (completed.includes(1) &&
+                (assets.get("admin-key-available") !== true ||
+                    assets.get("have-admin-file") === true)) ||
+            completed.includes(9);
+        if (canReachAnyDestination) {
+            return true;
+        }
+
+        if (!scene.activeAlert) {
+            const content = assets.get("talked-with-biro") !== true
+                ? "Você precisa falar com Biro primeiro."
+                : "Colete o arquivo de administrador no canto da sala antes de seguir para o Bazar.";
+            scene.alert({ content });
+        }
+        return false;
+    }
+});
+ben.set_position(-500, -10);
+admKey.set_position(-50, 50)
 
 scene.create_scene("power_chromicos", {
     startOn: 'first-interaction',
     endOn: 'last-interaction',
     dialogs: [
     {
+        from: gato,
+        to: chromicos,
+        about: "Oi, o senhor é Chromicos?"
+    },
+    {
         from: chromicos,
         to: gato,
-        about: "Olá usuário, sou Chromicos, guardião da transpilação desse mundo, sou o menssageiro da mensagem dos usuários à máquina que roda esse mundo."
+        about: "Sim. Sou Chromicos, guardião deste mundo. Ele foi construído por código, mas muitas partes se corromperam."
     },
     {
         from: gato,
         to: chromicos,
-        about: "Senhor Chromicos, quero aprender a falar na lingua da máquina, para pode voltar pra casa, me ensine."
+        about: "Disseram que só vou sair daqui se conseguir escrever um final. Você pode me ajudar a entender este mundo?"
     },
     {
         from: chromicos,
         to: gato,
-        about: "Você deve ser o messias, certo, ensinarei como você deve aprender a programar. Não será dificíl, completará sua missão fácilmente e rápido!"
+        about: "Para encontrar a saída, você precisará aprender a reparar pequenos programas."
     },
     {
         from: gato,
         to: chromicos,
-        about: "Messias?... Missão?... Pode me explicar oque realmente está acontecendo!!!",
+        about: "Mas por que eu? O que preciso fazer?"
     },
     {
         from: chromicos,
         to: gato,
-        about: "Não se exaute messias... vou te explicar tudo, sua missão e ademais coisas."
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Chegou ao NPC certo!"
+        about: "Eu esperava sua chegada. A saída só vai aparecer quando o programa que a controla estiver completo."
     },
     {
         from: gato,
         to: chromicos,
-        about: "!!!!...."
+        about: "Entendi..."
+    },
+    {
+        from: chromicos,
+        to: gato,
+        about: "Não poderei acompanhá-lo pela jornada. Por isso, quero apresentar você ao meu aprendiz."
     },
 ],
-    afterItDoes: () => scene.push("awnser_questions"),
+    afterItDoes: async () => {
+        await scene.animate("ben");
+        scene.push("wake-ben");
+    },
     disableControls: true
 
 });
 
-scene.create_scene("awnser_questions", {
+scene.create_scene("wake-ben", {
     startOn: 'immediate',
     endOn: 'last-interaction',
-    nextIn: 8000, //prosseguir em 2000 millisegundos (automatico), ou nextIn: "interaction" necessitando da tecla C
-    frames: [
-    {
-        frame: "scene_1.png",
-        dialog: {
-            from: chromicos,
-            to: gato,
-            about: "À algum tempo, uma equipe de desenvolvedores, queriam produzir um jogo de ScapeRoom, no qual seria esse mundo."
-        }
-    },
-    {
-        frame: "scene_2.png",
-        dialog: {
-            from: chromicos,
-            to: gato,
-            about: "Tudo foi consumado da ideia, esse mundo surgiu, junto com ele, eu, um npc bem inteligente, que aprendia com ele, podendo até gerar scripts."
-        }
-    },
-    {
-        frame: "scene_3.png",
-        dialog: {
-            from: chromicos,
-            to: gato,
-            about: "Mas... eles desistiram, deixaram esse projeto a deriva, mas deixaram ele com opção de rodar em toda máquina, podendo inserir novos jogadores, por isso você está aqui, você foi inserido."
-        }
-    }
-    ], //dentro da pasta scenes há /images
-    scene: {
-        centrelized: true,
-        overlayAllElements: true,
-        sound: new Audio("assets/scenes/images/history.wav"), //inclui alguma faixa de áudio
-    },
-    sceneAnimationPos: "bottom-to-top", //comportaento da animação da cena, baixo pra cima, cima pra baixo, lado para outro, lados aleatorios ou visão minima geral (shake-view)
-    disableControls: true,
-    afterItDoes: () => scene.push("end_aswner")
-});
-
-scene.create_scene("end_aswner", {
-    startOn: "immediate",
-    endOn: 'last-interaction',
     dialogs: [
     {
         from: chromicos,
         to: gato,
-        about: "E... não sei se você poderá voltar para sua casa, já que esse jogo não tem final, e é preciso programar um final, onde voce sai e destrói o projeto"
+        about: "Este é Ben, meu aprendiz. Ele vai acompanhar você, abrir as telas de código e ajudar a investigar as falhas."
     },
     {
         from: gato,
         to: chromicos,
-        about: "destruir? não!"
+        about: "Ahhhh... Olá Ben"
+    },
+    {
+        from: ben,
+        to: gato,
+        about: "Olá, Gato"
     },
     {
         from: chromicos,
         to: gato,
-        about: "messias... esses npc não são reais, nem sabem que isso é um jogo, você deve fazer isso para voltar ao seu mundo, você não pode morrer nesse mundo!"
+        about: "Preciso entrar em repouso. Ben conhece o caminho e vai guiar você. Espero vê-los quando o programa estiver pronto."
     },
     {
         from: gato,
         to: chromicos,
-        about: "mas..."
+        about: "Ok..."
     },
     {
-        from: chromicos,
+        from: ben,
         to: gato,
-        about: "pense em você, é o único real por aqui."
-    },
-    {
-        from: gato,
-        to: chromicos,
-        about: "ok...."
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Enfim, vamos te treinar! primeiro o básico.",
-        finishOn: 3000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Para você interagir com esse mundo, abrirei janelas de depuração, assim conseguirã executar scripts. Os objetos de manipulação são \n     - lugar \n    - personagem \n   - item",
-        finishOn: 3000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Aqui, você tem o poder de alterar a realidade usando comandos de criação e controle direto!",
-        finishOn: 4000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Para moldar o ambiente, usamos o objeto 'lugar'. Veja só: lugar.criar.caixa() cria uma nova caixa onde você quiser.",
-        finishOn: 4000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "lugar.deletar() apaga o primeiro objeto criado. Se você criar um caminho e depois uma caixa, primeiro o caminho será apagado. lugar.deletar.tudo() remove todos.",
-        finishOn: 4000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Para guardar dados importantes do cenário, use 'variavel'. Exemplo: variavel itensColetados = 0;",
-        finishOn: 4000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Para o mundo reagir às suas escolhas, use 'se'. Exemplo: se (itensColetados >= 3) { lugar.criar.porta(); }",
-        finishOn: 4000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "Se quiser repetir uma alteração no cenário, use 'enquanto'. Exemplo: enquanto (caixas < 5) { lugar.criar.caixa(); }",
-        finishOn: 4000
-    },
-    {
-        from: chromicos,
-        to: gato,
-        about: "O mundo não entende esse código, por isso eu vou traduzir para ele, como 001100101010001010100100101010101010101010101010101010101010101010101010",
-        finishOn: 3000
-    },
-    ],
+        about: "Há um arquivo de administrador guardado no canto, mas a porta está bloqueada. Vou abrir a tela de código para você completar os comandos que faltam."
+    }
+],
     afterItDoes: () => {
-        const existingObjectCount = framer.createdPlaceObjects.length;
-        framer.openCodeBox({
-            description: "crie uma caixa",
-            mode: "on-code",
-            onCode: () => {
-                const createdObjects = framer.createdPlaceObjects.slice(existingObjectCount);
-                if (!createdObjects.some((object) => object.classList.contains("place-object-caixa"))) {
-                    return "Ainda falta criar uma caixa com lugar.criar.caixa().";
-                }
-                scene.push("you_make");
-                return true;
-            }
-      });
+        assets.save("have-ben", true);
+        framer.character_follow_main_character(ben);
+        ben.character_dom.style.display = "block";
+        document.dispatchEvent(new CustomEvent("kat:challenge-1-ready"));
     },
     disableControls: true
+
 });
 
-
-scene.create_scene("you_make", {
-    startOn: "immediate",
-    endOn: 'last-interaction',
-    dialogs: [
+scene.create_animation("ben", {
+    characterMainScene: ben,
+    onSequence: true,
+    acts: [
     {
-        from: chromicos,
-        to: gato,
-        about: "Você vai conseguir, está pegando o jeito!",
-        finishOn: 3000
+        characterStyle: {
+            walk: (w) => w(0, -140, "left", 0)
+        }
     },
     {
-        from: chromicos,
-        to: gato,
-        about: "Em breve, vou te dar permissão de administrador para abrir a janela de depuração quando quiser.",
-        finishOn: 3000
+        characterStyle: {
+            walk: (w) => w(-230, 0, "top", 0)
+        }
     }
 ]
-
 });
 
-scene.push("power_chromicos");
 scene.enable_character_movement();
 
-chromicos.set_position(700, 300);
-gato.set_position(5, 300);
+chromicos.set_position(650, 300);
+chromicos.character_dom.style.height = "250px";
+chromicos.character_dom.style.width = "250px";
+gato.set_position(Math.max(150, window.innerWidth * 0.22), 300);
+
+let adminKeyAlertRegistered = false;
+function registerAdminKeyAlert() {
+    if (adminKeyAlertRegistered || assets.get("have-admin-file")) {
+        return;
+    }
+
+    adminKeyAlertRegistered = true;
+    admKey.character_dom.style.display = "block";
+    admKey.set_position(Math.max(160, window.innerWidth * 0.78), Math.max(130, window.innerHeight * 0.48));
+    scene.alert({
+        startOn: "first-interaction",
+        interactWith: admKey,
+        endOn: "last-interaction",
+        content: "Arquivo de administrador coletado! Volte ao Refúgio e siga com Ben até o Bazar Oculto.",
+        onInteract: () => {
+            assets.save("have-admin-file", true);
+            assets.save("admin-access-lost", false);
+            document.dispatchEvent(new CustomEvent("kat:admin-access-restored"));
+        },
+        destroyNPC: admKey
+    });
+}
+
+document.addEventListener("kat:challenge-complete", (event) => {
+    if (event.detail.id !== 1 || assets.get("admin-key-available")) {
+        return;
+    }
+
+    assets.save("admin-key-available", true);
+    registerAdminKeyAlert();
+});
+
+if (assets.get("admin-key-available")) {
+    registerAdminKeyAlert();
+}
+
+if (assets.get("have-ben")) {
+    ben.character_dom.style.display = "block";
+    framer.character_follow_main_character(ben);
+    if (binaryProgress.includes(8) && !binaryProgress.includes(9)) {
+        if (assets.get("chromicos-review-seen")) {
+            window.setTimeout(() => {
+                document.dispatchEvent(new CustomEvent("kat:challenge-9-ready"));
+            }, 0);
+        } else {
+            scene.create_scene("chromicos-review", {
+                startOn: "immediate",
+                endOn: "last-interaction",
+                dialogs: [
+                    { from: chromicos, to: gato, about: "Ben me contou que vocês reuniram os quatro arquivos e Piona os decifrou. O programa está quase pronto." },
+                    { from: ben, to: gato, about: "Encontramos uma falha na ordem dos comandos. Complete a linha que executa a saída só depois da validação." },
+                    { from: chromicos, to: gato, about: "Revise com calma. Quando esse erro for corrigido, abrirei o terminal final." }
+                ],
+                afterItDoes: () => {
+                    assets.save("chromicos-review-seen", true);
+                    document.dispatchEvent(new CustomEvent("kat:challenge-9-ready"));
+                },
+                disableControls: true
+            });
+            scene.push("chromicos-review");
+        }
+    } else if (!binaryProgress.includes(8) && !assets.get("binary-return-seen")) {
+        scene.create_scene("binary-return", {
+            startOn: "immediate",
+            endOn: "last-interaction",
+            dialogs: [
+                { from: chromicos, to: gato, about: "A porta abriu e você recuperou o arquivo de administrador. Agora Célio poderá ajudar a restaurar as permissões." }
+            ],
+            afterItDoes: () => assets.save("binary-return-seen", true),
+            disableControls: true
+        });
+        scene.push("binary-return");
+    }
+} else {
+    scene.push("power_chromicos");
+}
+
+window.katQuestFollowUp({
+    challengeId: 1,
+    sceneName: "binary-challenge-1-complete",
+    seenKey: "binary-challenge-1-complete-seen",
+    dialogs: [
+        {
+            from: ben,
+            to: gato,
+            about: "Boa, Gato! Você reiniciou o NPC e o tornou visível usando a variável certa."
+        },
+        {
+            from: ben,
+            to: gato,
+            about: "O arquivo de administrador ficou disponível. Pegue-o no canto da sala antes de seguirmos."
+        }
+    ]
+});
+
+window.katQuestFollowUp({
+    challengeId: 9,
+    sceneName: "binary-challenge-9-complete",
+    seenKey: "binary-challenge-9-complete-seen",
+    dialogs: [
+        {
+            from: chromicos,
+            to: gato,
+            about: "A validação passou: o código está pronto e os quatro arquivos estão corretos."
+        },
+        {
+            from: ben,
+            to: gato,
+            about: "Você corrigiu a ordem da verificação. Agora o terminal final está liberado."
+        }
+    ]
+});

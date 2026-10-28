@@ -1,0 +1,46 @@
+Jogo: KAT
+
+- conta a história de [KAT], um gato no qual estava deitado no teclado de seu dono programador, e então é teleportado à um mundo abandonado e quebrado, agora [KAT] precisa aprender a programar e fazer um final para sair.
+
+TAKE 1 (abduction):
+[KAT] é introduzido ao jogo, spawnando, [KAT] se vê agora em um mundo estranho, perguntando a si mesmo onde ele se encontra, partindo pra cena área do *Refugio.
+
+TAKE 2 (Refugiate):
+[KAT] se vê agora em uma área preservada, onde presencia vários NPCs se refugiando desse mundo defeituoso, ele é introduzido à história desse mundo. Após isso, [KAT] precisa procurar por [Chromicos], indo até a *Sala Binária
+
+TAKE 3 (BinaryRoom):
+[KAT] encontra-se com [Chromicos] guardião do mundo e, aprendiz de programador, um NPC diferente, [Chromicos] apresenta a história do mundo, e tem como objetivo treinar [KAT], para aprender à programar. Deixando [Ben], um aprendiz, como guia e ajuda para [KAT], onde ele o leva ao canto da sala, que tem um NPC portando um arquivo de administrador.
+
+TAKE 4 ( ):
+[Ben] e [KAT] vão até o *Bazar Oculto, se encontrando com [Celio], um robô vendedor de peças e scripts, ele vende scripts pra reabilitar permissão de administrador. [KAT] vê oportunidade de reconquistar suas permissões sempre que possível.
+
+TAKE 5 (Garden):
+No *Jardim, [KAT] aprende com [Ben] a concertar uma passagem até outra cena. [KAT] acha o primeiro código decodificado para completar o final.
+
+TAKE 6 (DeepStrech):
+[KAT] ao acessar a porta, vai a *Lacuna Profunda, um lugar separado de tudo, onde encontram [Piona], a professora, [KAT] entrega à ela o primeiro código, e ela traduz deixando legível à ele. [KAT] descobre que para sair são necessários 4 partes de código para completar ([KAT] precisa ir até ela para descodificar todos).
+
+TAKE 7 (Refugiate):
+eles voltam ao *Refugio, e tentam ver se algum NPC tem alguma parte, ou se está escondido por lá. [Ben] vê que há um asset escondido, e abre a depuração para ele executar a mostragem.
+
+TAKE 8 (Lab):
+[Ben] acha sua extensão para se teleportar  facilitando sua locomoção, achando mais uma parte do código por ali.
+
+TAKE 9 (Teleport):
+Ao se teleportar por várias vezes, [Ben] e [KAT] param na tela onde [KAT] surgiu, achando a última parte, completando o código.
+
+TAKE 10 (FinalCommit):
+Após isso, eles voltam à [Chromicos], no qual ele abre O TERMINAL, onde [KAT] com ajuda do jogador, insere os comandos, completando o código, após isso, a tela fica branca, os personagens somem, antes disso, [Ben] e [Chromicos] se despedem, então [KAT] acorda no teclado, assustado, olha para os lados, vê que não se passou de um sonho, e volta a dormir, acima, o computador mostra: "Simulação terminada por: KAT".
+
+pra constar:
+- Personagens importantes:
+   - KAT: gato real e protagonista;
+   - Chromicos: guardião do mundo, NPC inteligente e programador, introduz [KAT] à história do jogo;
+   - Ben: menino NPC, aprendiz de Chromicos, consegue sumonar telas de código para [KAT];
+   - Celio: vendedor de recursos, manipulador de objetos.
+   - Piona: uma NPC que cuidava por ser professora no jogo, guia por completar algumas coisas para [KAT]
+
+OBS: 
+
+*  - cena/area
+[] - personagem/npc

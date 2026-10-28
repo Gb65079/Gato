@@ -6,6 +6,7 @@ class Framer {
         this.isOnDialog = false;
         this.characters = [];
         this.npcs = [];
+        this.followingCharacters = [];
         this.controlsDisabled = false;
         this.sceneManager = null;
         this.interactionCharacter = null;
@@ -15,6 +16,7 @@ class Framer {
         this.codeBoxPreviousControlsDisabled = false;
         this.createdPlaceObjects = [];
         this.placeObjectSequence = 0;
+        this.glitches = new Map();
         this.placeApi = this.createPlaceApi();
     }
 
@@ -24,6 +26,32 @@ class Framer {
             if(!x.isNPC) this.characters.push(x);
             else this.npcs.push(x);
         })
+    }
+
+    character_follow_main_character(character) {
+        if (!character || !character.character_dom || typeof character.walk !== "function") {
+            throw new TypeError("A following character must have a DOM element and a walk() method.");
+        }
+        if (!this.character_main_scene) {
+            throw new Error("A main character must be set before adding a follower.");
+        }
+        if (character === this.character_main_scene) {
+            throw new Error("The main character cannot follow itself.");
+        }
+
+        const existingFollower = this.followingCharacters.find(
+            (follower) => follower.character === character
+        );
+        if (existingFollower) {
+            return character;
+        }
+
+        character.framer = this;
+        this.followingCharacters.push({
+            character,
+            distance: 65 * (this.followingCharacters.length + 1)
+        });
+        return character;
     }
 
     set_character_main_scene(character) {
@@ -48,6 +76,82 @@ class Framer {
 
         let currentTop = this.characterPosition.top;
         let currentLeft = this.characterPosition.left;
+        let isTeleporting = false;
+        let portalSpawnApplied = false;
+        let adminRecoveryRequired = assets.get("admin-access-lost") === true;
+        const teleportThroughPortal = (portal, destination) => {
+            if (typeof destination !== "string" || destination.trim() === "") {
+                throw new TypeError("Portal destination must be a non-empty path.");
+            }
+            if (isTeleporting) {
+                return false;
+            }
+            if (adminRecoveryRequired &&
+                !destination.split(/[?#]/)[0].endsWith("marketplace.html")) {
+                return false;
+            }
+
+            isTeleporting = true;
+            this.character_main_scene.stop();
+            if (window.katSound) {
+                window.katSound.play("teleport");
+            }
+            this.sceneManager.animate_character(this.character_main_scene, {
+                frames: ["spawn.png", "spawn1.png", "spawn3.png"],
+                fps: 5,
+                loop: false
+            }).then(() => {
+                try {
+                    assets.save("portal_reference", portal.direction);
+                } catch (error) {
+                    isTeleporting = false;
+                    console.error("Failed to save portal spawn reference.", error);
+                    return;
+                }
+                window.location.assign(destination);
+            }).catch((error) => {
+                isTeleporting = false;
+                console.error("Failed to play portal teleport animation.", error);
+            });
+            return true;
+        };
+        window.addEventListener("resize", () => {
+            const element = this.character_main_scene.character_dom;
+            const left = Math.max(0, Math.min(
+                parseFloat(element.style.left) || 0,
+                Math.max(0, window.innerWidth - element.offsetWidth)
+            ));
+            const top = Math.max(0, Math.min(
+                parseFloat(element.style.top) || 0,
+                Math.max(0, window.innerHeight - element.offsetHeight)
+            ));
+            element.style.left = `${left}px`;
+            element.style.top = `${top}px`;
+            this.set_character_position(top, left);
+        });
+
+        const updateRecoveryPortals = (recovering) => {
+            if (!this.sceneManager) {
+                return;
+            }
+            this.sceneManager.portals.forEach((portal) => {
+                if (!portal.recoveryDestination) {
+                    return;
+                }
+                portal.destination = recovering
+                    ? portal.recoveryDestination
+                    : portal.normalDestination;
+            });
+        };
+
+        document.addEventListener("kat:admin-access-lost", () => {
+            adminRecoveryRequired = true;
+            updateRecoveryPortals(true);
+        });
+        document.addEventListener("kat:admin-access-restored", () => {
+            adminRecoveryRequired = false;
+            updateRecoveryPortals(false);
+        });
 
         this.character_main_scene.character_dom.style.top = currentTop + 'px';
         this.character_main_scene.character_dom.style.left = currentLeft + 'px';
@@ -61,7 +165,18 @@ class Framer {
             currentTop = this.characterPosition.top;
             currentLeft = this.characterPosition.left;
 
-            if (this.character_main_scene.isAnimating) {
+            if (!portalSpawnApplied) {
+                portalSpawnApplied = true;
+                const portalReference = assets.get("portal_reference");
+                if (portalReference != null) {
+                    if (!this.character_main_scene.hasManualPosition) {
+                        this.character_main_scene.set_position("portal_reference");
+                    }
+                    assets.save("portal_reference", null);
+                }
+            }
+
+            if (isTeleporting || this.character_main_scene.isAnimating) {
                 requestAnimationFrame(gameLoop);
                 return;
             }
@@ -71,6 +186,84 @@ class Framer {
 
             let nextTop = currentTop;
             let nextLeft = currentLeft;
+
+            let interactionPortal = null;
+            if (this.sceneManager && this.sceneManager.portals.length > 0) {
+                const characterBounds = this.character_main_scene.get_hitbox_bounds();
+                for (const portal of this.sceneManager.portals) {
+                    portal.teleportTo = (destination) => teleportThroughPortal(portal, destination);
+                    if (!portal.element.isConnected || portal.on !== "interact" || !portal.destination) {
+                        continue;
+                    }
+
+                    const portalBounds = portal.element.getBoundingClientRect();
+                    const nearby = !(
+                        characterBounds.right + 20 <= portalBounds.left ||
+                        characterBounds.left - 20 >= portalBounds.right ||
+                        characterBounds.bottom + 20 <= portalBounds.top ||
+                        characterBounds.top - 20 >= portalBounds.bottom
+                    );
+                    let prompt = portal.element.querySelector(".pressToTalk");
+                    const isMarketplace = portal.destination.split(/[?#]/)[0].endsWith("marketplace.html");
+                    const promptText = adminRecoveryRequired && !isMarketplace
+                        ? "ADM perdido — vá ao Bazar"
+                        : "P — entrar";
+                    if (nearby && !prompt) {
+                        prompt = document.createElement("div");
+                        prompt.className = "pressToTalk";
+                        portal.element.appendChild(prompt);
+                    }
+                    if (nearby && prompt && prompt.textContent !== promptText) {
+                        prompt.textContent = promptText;
+                    } else if (!nearby && prompt) {
+                        prompt.remove();
+                    }
+                    if (nearby && !interactionPortal) {
+                        interactionPortal = portal;
+                    }
+                }
+            }
+
+            if (
+                keysJustPressed["KeyP"] &&
+                interactionPortal &&
+                !this.controlsDisabled &&
+                !this.codeBox &&
+                !this.isOnDialog
+            ) {
+                keysJustPressed["KeyP"] = false;
+                let canTeleport = true;
+                if (interactionPortal.canTeleport) {
+                    try {
+                        const permission = interactionPortal.canTeleport();
+                        if (typeof permission !== "boolean") {
+                            throw new TypeError('Portal "canTeleport" must return a boolean.');
+                        }
+                        canTeleport = permission;
+                    } catch (error) {
+                        console.error("Failed to check portal teleport permission.", error);
+                        canTeleport = false;
+                    }
+                }
+
+                if (canTeleport) {
+                    let destination;
+                    try {
+                        destination = interactionPortal.resolveDestination
+                            ? interactionPortal.resolveDestination()
+                            : interactionPortal.destination;
+                    } catch (error) {
+                        console.error("Failed to resolve portal destination.", error);
+                        requestAnimationFrame(gameLoop);
+                        return;
+                    }
+                    if (destination) {
+                        teleportThroughPortal(interactionPortal, destination);
+                    }
+                    requestAnimationFrame(gameLoop);
+                    return;
+                }
+            }
 
             if (!this.controlsDisabled && (keysPressed['ArrowUp'] || keysPressed['KeyW'])) {
                 nextTop -= speed;
@@ -89,9 +282,12 @@ class Framer {
                 direction = 'right';
                 isMoving = true;
             } else if (
-                keysJustPressed['KeyP'] &&
+                keysJustPressed['KeyE'] &&
                 !this.codeBox &&
-                (this.readyToDialog || (this.sceneManager && this.sceneManager.currentScene)) &&
+                (
+                    this.readyToDialog ||
+                    (this.sceneManager && (this.sceneManager.currentScene || this.sceneManager.activeAlert))
+                ) &&
                 !this.isOnDialog
             ) {
                 const character = this.interactionCharacter || this.npcs[0];
@@ -99,20 +295,32 @@ class Framer {
                 
             }
 
+            const characterElement = this.character_main_scene.character_dom;
+            nextTop = Math.max(0, Math.min(
+                nextTop,
+                Math.max(0, window.innerHeight - characterElement.offsetHeight)
+            ));
+            nextLeft = Math.max(0, Math.min(
+                nextLeft,
+                Math.max(0, window.innerWidth - characterElement.offsetWidth)
+            ));
+            isMoving = isMoving && (nextTop !== currentTop || nextLeft !== currentLeft);
+
             if (isMoving) {
                 this.character_main_scene.facingDirection = direction;
                 let npcCollision = false;
                 let interactionCharacter = null;
 
                 for (let npc of this.npcs) {
-                    if (this.hitNPCHitbox(nextTop, nextLeft, npc.character_dom)) {
+                    if (this.hitNPCHitbox(nextTop, nextLeft, npc)) {
                         npcCollision = true;
                         interactionCharacter = npc;
                         break;
                     }
                 }
 
-                const barrierCollision = !npcCollision && this.sceneManager &&
+                const glitchCollision = !npcCollision && this.hitsGlitches(nextLeft, nextTop);
+                const barrierCollision = !npcCollision && !glitchCollision && this.sceneManager &&
                     !this.sceneManager.canMove(
                         this.character_main_scene,
                         nextTop,
@@ -120,10 +328,10 @@ class Framer {
                         currentTop,
                         currentLeft
                     );
-                const placeObjectCollision = !npcCollision && !barrierCollision &&
+                const placeObjectCollision = !npcCollision && !glitchCollision && !barrierCollision &&
                     this.hitsCreatedPlaceObject(nextTop, nextLeft);
 
-                if (!npcCollision && !barrierCollision && !placeObjectCollision) {
+                if (!npcCollision && !glitchCollision && !barrierCollision && !placeObjectCollision) {
                     currentTop = nextTop;
                     currentLeft = nextLeft;
                     this.characterPosition = { top: currentTop, left: currentLeft };
@@ -133,17 +341,35 @@ class Framer {
                         currentSpriteIndex = (currentSpriteIndex === 0) ? 1 : 0;
                         frameCounter = 0;
                     }
-                    [].slice.call(document.querySelectorAll('.npc')).map(x=>x.innerHTML = ``)
+                    this.npcs.forEach((npc) => {
+                        const prompt = npc.character_dom.querySelector(".pressToTalk");
+                        if (prompt) {
+                            prompt.remove();
+                        }
+                    });
                     this.readyToDialog = false;
                     this.interactionCharacter = null;
 
                     this.character_main_scene.walk(currentTop, currentLeft, direction, currentSpriteIndex);
                 } else {
                     this.character_main_scene.stop();
-                    if (npcCollision) {
-                        [].slice.call(document.querySelectorAll('.npc')).map(x=>x.innerHTML = `<div class="pressToTalk">P</div>`);
-                        [].slice.call(document.querySelectorAll('.npc .pressToTalk')).map(x=>x.style.display = "block");
-                    }
+                    this.npcs.forEach((npc) => {
+                        const characterElement = npc.character_dom;
+                        const existingPrompt = characterElement.querySelector(".pressToTalk");
+                        if (npc !== interactionCharacter) {
+                            if (existingPrompt) {
+                                existingPrompt.remove();
+                            }
+                            return;
+                        }
+
+                        const prompt = existingPrompt || document.createElement("div");
+                        prompt.className = "pressToTalk";
+                        prompt.textContent = "pressione E";
+                        if (!existingPrompt) {
+                            characterElement.appendChild(prompt);
+                        }
+                    });
                     this.readyToDialog = npcCollision;
                     this.interactionCharacter = interactionCharacter;
                 }
@@ -153,11 +379,200 @@ class Framer {
                 currentSpriteIndex = 0;
             }
 
+            this.update_following_characters();
+            keysJustPressed['KeyE'] = false;
             keysJustPressed['KeyP'] = false;
             requestAnimationFrame(gameLoop);
         };
 
         requestAnimationFrame(gameLoop);
+    }
+
+    generateGlitches(options = {}) {
+        if (!options || typeof options !== "object" || Array.isArray(options)) {
+            throw new TypeError("Glitch options must be an object.");
+        }
+        const { i, squaresCount = 20, reference } = options;
+        if (i == null) {
+            throw new TypeError("Glitch groups require an i identifier.");
+        }
+        if (!Number.isInteger(squaresCount) || squaresCount < 1) {
+            throw new TypeError("squaresCount must be a positive integer.");
+        }
+        if (this.glitches.has(i)) {
+            throw new Error(`Glitch group "${i}" already exists.`);
+        }
+
+        const referenceElement = reference && (
+            reference.element || reference.character_dom || reference
+        );
+        if (!referenceElement || typeof referenceElement.getBoundingClientRect !== "function") {
+            throw new TypeError("Glitch reference must be a portal or DOM element.");
+        }
+        const bounds = referenceElement.getBoundingClientRect();
+        const elements = [];
+        const referenceZIndex = Number.parseInt(referenceElement.style.zIndex, 10);
+        const spreadWidth = Math.min(
+            window.innerWidth,
+            Math.max(bounds.width * 3, Math.sqrt(squaresCount) * 42)
+        );
+        const spreadHeight = Math.min(
+            window.innerHeight,
+            Math.max(bounds.height * 2.5, Math.sqrt(squaresCount) * 42)
+        );
+        const spreadLeft = Math.max(0, Math.min(
+            (bounds.left + bounds.right - spreadWidth) / 2,
+            window.innerWidth - spreadWidth
+        ));
+        const spreadTop = Math.max(0, Math.min(
+            (bounds.top + bounds.bottom - spreadHeight) / 2,
+            window.innerHeight - spreadHeight
+        ));
+        const columns = Math.ceil(Math.sqrt(
+            squaresCount * spreadWidth / spreadHeight
+        ));
+        const rows = Math.ceil(squaresCount / columns);
+        const cellWidth = spreadWidth / columns;
+        const cellHeight = spreadHeight / rows;
+
+        for (let index = 0; index < squaresCount; index += 1) {
+            const size = 12 + Math.floor(Math.random() * 21);
+            const column = index % columns;
+            const row = Math.floor(index / columns);
+            const left = Math.max(0, Math.min(
+                spreadLeft + (column + 0.2 + Math.random() * 0.6) * cellWidth - size / 2,
+                window.innerWidth - size
+            ));
+            const top = Math.max(0, Math.min(
+                spreadTop + (row + 0.2 + Math.random() * 0.6) * cellHeight - size / 2,
+                window.innerHeight - size
+            ));
+            const element = document.createElement("div");
+            element.className = "framer-glitch-square";
+            element.setAttribute("aria-hidden", "true");
+            Object.assign(element.style, {
+                position: "fixed",
+                left: `${left}px`,
+                top: `${top}px`,
+                width: `${size}px`,
+                height: `${size}px`,
+                zIndex: String(Number.isFinite(referenceZIndex) ? referenceZIndex + 1 : 2),
+                animationDelay: `${-Math.random() * 900}ms`
+            });
+            document.body.appendChild(element);
+            elements.push(element);
+        }
+
+        this.glitches.set(i, elements);
+        return elements.length;
+    }
+
+    removeGlitch(i, index) {
+        const elements = this.glitches.get(i);
+        if (!elements) {
+            return false;
+        }
+        if (index === undefined) {
+            elements.forEach((element) => element.remove());
+            this.glitches.delete(i);
+            return true;
+        }
+        if (!Number.isInteger(index) || index < 0 || index >= elements.length) {
+            throw new RangeError(`Glitch square index "${index}" is out of range.`);
+        }
+
+        elements[index].remove();
+        elements.splice(index, 1);
+        if (elements.length === 0) {
+            this.glitches.delete(i);
+        }
+        return true;
+    }
+
+    hitsGlitches(left, top) {
+        if (this.glitches.size === 0 || !this.character_main_scene) {
+            return false;
+        }
+
+        const character = this.character_main_scene;
+        const bounds = character.get_hitbox_bounds(left, top);
+        for (const elements of this.glitches.values()) {
+            for (const element of elements) {
+                if (!element.isConnected) {
+                    continue;
+                }
+                const glitchBounds = element.getBoundingClientRect();
+                if (
+                    bounds.left < glitchBounds.right &&
+                    bounds.right > glitchBounds.left &&
+                    bounds.top < glitchBounds.bottom &&
+                    bounds.bottom > glitchBounds.top
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    update_following_characters() {
+        if (this.followingCharacters.length === 0 || !this.character_main_scene) {
+            return;
+        }
+
+        const mainCharacter = this.character_main_scene;
+        const mainTop = parseFloat(mainCharacter.character_dom.style.top) || 0;
+        const mainLeft = parseFloat(mainCharacter.character_dom.style.left) || 0;
+        const trailingDirections = {
+            top: { top: 1, left: 0 },
+            bottom: { top: -1, left: 0 },
+            left: { top: 0, left: 1 },
+            right: { top: 0, left: -1 }
+        };
+        const trailingDirection = trailingDirections[mainCharacter.facingDirection] ||
+            trailingDirections.bottom;
+
+        this.followingCharacters.forEach(({ character, distance }) => {
+            if (character.isAnimating) {
+                return;
+            }
+
+            const element = character.character_dom;
+            const currentTop = parseFloat(element.style.top) || 0;
+            const currentLeft = parseFloat(element.style.left) || 0;
+            const targetTop = mainTop + trailingDirection.top * distance;
+            const targetLeft = mainLeft + trailingDirection.left * distance;
+            const deltaTop = targetTop - currentTop;
+            const deltaLeft = targetLeft - currentLeft;
+            const distanceToTarget = Math.hypot(deltaTop, deltaLeft);
+
+            if (distanceToTarget <= 1) {
+                if (character.isWalking && typeof character.stop === "function") {
+                    character.stop();
+                }
+                return;
+            }
+
+            const step = Math.min(5, distanceToTarget);
+            const nextTop = currentTop + deltaTop / distanceToTarget * step;
+            const nextLeft = currentLeft + deltaLeft / distanceToTarget * step;
+            const direction = Math.abs(deltaTop) > Math.abs(deltaLeft)
+                ? (deltaTop < 0 ? "top" : "bottom")
+                : (deltaLeft < 0 ? "left" : "right");
+
+            if (character.isNPC) {
+                element.style.top = `${nextTop}px`;
+                element.style.left = `${nextLeft}px`;
+                element.style.zIndex = String(Math.round(nextTop + element.offsetHeight));
+            } else {
+                character.walk(
+                    nextTop,
+                    nextLeft,
+                    direction,
+                    Math.floor(performance.now() / 125) % 2
+                );
+            }
+        });
     }
 
     set_character_position(top, left) {
@@ -263,15 +678,7 @@ class Framer {
     }
 
     hitsCreatedPlaceObject(top, left) {
-        const character = this.character_main_scene.character_dom;
-        const width = character.offsetWidth;
-        const height = character.offsetHeight;
-        const characterBounds = {
-            left,
-            right: left + width,
-            top,
-            bottom: top + height
-        };
+        const characterBounds = this.character_main_scene.get_hitbox_bounds(left, top);
 
         return this.createdPlaceObjects.some((element) => {
             if (!element.isConnected || element.dataset.blocksMovement !== "true") {
@@ -314,24 +721,15 @@ class Framer {
     }
 
     hitNPCHitbox(testTop, testLeft, npc) {
-        const charWidth = this.character_main_scene.character_dom.offsetWidth;
-        const charHeight = this.character_main_scene.character_dom.offsetHeight;
-
-        const charLeft = testLeft;
-        const charRight = testLeft + charWidth;
-        const charTop = testTop;
-        const charBottom = testTop + charHeight;
-
-        const npcLeft = npc.offsetLeft;
-        const npcRight = npc.offsetLeft + npc.offsetWidth;
-        const npcTop = npc.offsetTop;
-        const npcBottom = npc.offsetTop + npc.offsetHeight;
+        const characterBounds = this.character_main_scene.get_hitbox_bounds(testLeft, testTop);
+        const npcBounds = npc.get_hitbox_bounds();
+        const interactionMargin = 5;
 
         return !(
-            charRight < npcLeft ||
-            charLeft > npcRight ||
-            charBottom < npcTop ||
-            charTop > npcBottom
+            characterBounds.right + interactionMargin <= npcBounds.left ||
+            characterBounds.left - interactionMargin >= npcBounds.right ||
+            characterBounds.bottom + interactionMargin <= npcBounds.top ||
+            characterBounds.top - interactionMargin >= npcBounds.bottom
         );
     }
 

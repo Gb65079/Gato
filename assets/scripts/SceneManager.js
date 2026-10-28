@@ -8,9 +8,12 @@ class SceneManager {
         this.animations = new Map();
         this.currentScene = null;
         this.pendingScenes = [];
+        this.alerts = [];
+        this.activeAlert = null;
         this.fps = 60;
         this.effects = [];
         this.barriers = [];
+        this.portals = [];
         this.framer = framer;
         this.dialogTimer = null;
         this.dialogAdvanceTimer = null;
@@ -22,6 +25,8 @@ class SceneManager {
         this.flashCardTimer = null;
         this.flashCardIndex = -1;
         this.flashCardElement = null;
+        this.flashCardImages = new Map();
+        this.portraitRequestId = 0;
         this.flashCardAudio = null;
         this.flashCardLayersAbove = false;
         this.flashCardTimerElapsed = false;
@@ -41,6 +46,91 @@ class SceneManager {
                 this.advance_flash_card(true);
             }
         });
+    }
+
+    createPortal(direction = "bottom") {
+        const directions = ["top", "bottom", "left", "right"];
+        if (!directions.includes(direction)) {
+            throw new TypeError(`Unsupported portal direction "${direction}".`);
+        }
+
+        const character = this.framer.character_main_scene;
+        if (!character || !character.character_dom || !character.character_dom.isConnected) {
+            throw new Error("A main character must be on screen before creating a portal.");
+        }
+
+        const width = 116;
+        const height = 148;
+        const edgeOffset = 12;
+        const positions = {
+            top: {
+                x: window.innerWidth / 2,
+                y: height / 2 + edgeOffset
+            },
+            bottom: {
+                x: window.innerWidth / 2,
+                y: window.innerHeight - height / 2 - edgeOffset
+            },
+            left: {
+                x: width / 2 + edgeOffset,
+                y: window.innerHeight / 2
+            },
+            right: {
+                x: window.innerWidth - width / 2 - edgeOffset,
+                y: window.innerHeight / 2
+            }
+        };
+        const centerX = Math.max(width / 2, Math.min(
+            window.innerWidth - width / 2,
+            positions[direction].x
+        ));
+        const centerY = Math.max(height / 2, Math.min(
+            window.innerHeight - height / 2,
+            positions[direction].y
+        ));
+        const element = document.createElement("div");
+        element.className = "portal-object";
+        element.setAttribute("role", "img");
+        element.setAttribute("aria-label", "Portal");
+        element.style.width = `${width}px`;
+        element.style.height = `${height}px`;
+        element.style.left = `${centerX}px`;
+        element.style.top = `${centerY}px`;
+        element.style.backgroundImage = 'url("assets/sprites/SpriteSheets/portal.png")';
+        element.style.zIndex = String(Math.round(centerY + height / 2));
+        document.body.appendChild(element);
+
+        const portal = {
+            element,
+            direction,
+            destination: null,
+            on: null,
+            canTeleport: null,
+            teleport: (options) => {
+                if (!options || typeof options !== "object" || Array.isArray(options)) {
+                    throw new TypeError("Portal teleport options must be an object.");
+                }
+                if (typeof options.to !== "string" || options.to.trim() === "") {
+                    throw new TypeError("Portal destination must be a non-empty path.");
+                }
+                if (options.on !== "interact") {
+                    throw new TypeError('Portal "on" must be "interact".');
+                }
+                if (options.canTeleport != null && typeof options.canTeleport !== "function") {
+                    throw new TypeError('Portal "canTeleport" must be a function.');
+                }
+                portal.destination = options.to;
+                portal.on = options.on;
+                portal.canTeleport = options.canTeleport || null;
+                return portal;
+            },
+            remove: () => {
+                element.remove();
+                this.portals = this.portals.filter((registeredPortal) => registeredPortal !== portal);
+            }
+        };
+        this.portals.push(portal);
+        return portal;
     }
 
     create_scene(name, options = {}) {
@@ -134,6 +224,9 @@ class SceneManager {
         if (!["immediate", "first-interaction"].includes(scene.startOn)) {
             throw new TypeError(`Unsupported startOn value "${scene.startOn}" for scene "${name}".`);
         }
+        if (scene.interactWith != null && scene.interactWith.isNPC !== true) {
+            throw new TypeError(`interactWith for scene "${name}" must be an NPC.`);
+        }
         if (!["last-interaction", "manual"].includes(scene.endOn)) {
             throw new TypeError(`Unsupported endOn value "${scene.endOn}" for scene "${name}".`);
         }
@@ -143,6 +236,190 @@ class SceneManager {
 
         this.scenes.set(name, scene);
         return scene;
+    }
+
+    alert(options = {}) {
+        if (!options || typeof options !== "object" || Array.isArray(options)) {
+            throw new TypeError("Alert options must be an object.");
+        }
+        if (typeof options.content !== "string" || options.content.trim() === "") {
+            throw new TypeError("Alert content must be a non-empty string.");
+        }
+
+        const startOn = options.startOn ?? "immediate";
+        const endOn = options.endOn ?? "last-interaction";
+        if (!["immediate", "first-interaction"].includes(startOn)) {
+            throw new TypeError(`Unsupported alert startOn value "${startOn}".`);
+        }
+        if (!["last-interaction", "manual"].includes(endOn)) {
+            throw new TypeError(`Unsupported alert endOn value "${endOn}".`);
+        }
+        if (options.interactWith != null && options.interactWith.isNPC !== true) {
+            throw new TypeError("Alert interactWith must be an NPC.");
+        }
+        if (options.onInteract != null && typeof options.onInteract !== "function") {
+            throw new TypeError("Alert onInteract must be a function.");
+        }
+        const destroyNPC = options.destroyNPC === true
+            ? options.interactWith
+            : options.destroyNPC;
+        if (options.destroyNPC != null && options.destroyNPC !== false &&
+            options.destroyNPC !== true && options.destroyNPC.isNPC !== true) {
+            throw new TypeError("Alert destroyNPC must be true or an NPC.");
+        }
+        if (options.destroyNPC === true && !destroyNPC) {
+            throw new TypeError("Alert destroyNPC requires an NPC in interactWith.");
+        }
+        if (options.closeOn != null &&
+            (!Number.isFinite(options.closeOn) || options.closeOn < 0)) {
+            throw new TypeError("Alert closeOn must be a non-negative duration.");
+        }
+
+        const alert = {
+            content: options.content,
+            endOn,
+            closeOn: options.closeOn,
+            startOn,
+            interactWith: options.interactWith,
+            onInteract: options.onInteract,
+            destroyNPC,
+            state: startOn === "immediate" ? "queued" : "pending",
+            element: null,
+            timer: null
+        };
+        this.alerts.push(alert);
+        if (startOn === "immediate") {
+            this.show_next_alert();
+        }
+
+        return {
+            close: () => this.close_alert(alert)
+        };
+    }
+
+    show_next_alert() {
+        if (this.activeAlert) {
+            return;
+        }
+
+        const alert = this.alerts.find((queuedAlert) => queuedAlert.state === "queued");
+        if (!alert) {
+            return;
+        }
+
+        const element = document.createElement("div");
+        element.className = "scene-alert";
+        element.setAttribute("role", "status");
+        element.setAttribute("aria-live", "polite");
+
+        const content = document.createElement("span");
+        content.className = "scene-alert-content";
+        content.textContent = alert.content;
+        element.appendChild(content);
+
+        if (alert.endOn === "last-interaction") {
+            const hint = document.createElement("span");
+            hint.className = "scene-alert-hint";
+            hint.textContent = "E — FECHAR";
+            element.appendChild(hint);
+        }
+
+        document.body.appendChild(element);
+        alert.element = element;
+        alert.state = "active";
+        this.activeAlert = alert;
+
+        if (alert.closeOn != null) {
+            alert.timer = window.setTimeout(() => this.close_alert(alert), alert.closeOn);
+        }
+    }
+
+    close_alert(alert) {
+        if (!this.alerts.includes(alert)) {
+            return false;
+        }
+
+        if (alert.timer !== null) {
+            window.clearTimeout(alert.timer);
+            alert.timer = null;
+        }
+        if (alert.element) {
+            alert.element.remove();
+            alert.element = null;
+        }
+
+        const wasActive = this.activeAlert === alert;
+        if (wasActive) {
+            this.activeAlert = null;
+        }
+        if (wasActive && alert.destroyNPC) {
+            this.destroy_npc(alert.destroyNPC);
+        }
+        alert.state = "closed";
+        this.alerts = this.alerts.filter((registeredAlert) => registeredAlert !== alert);
+        if (wasActive) {
+            this.show_next_alert();
+        }
+        return true;
+    }
+
+    destroy_npc(character) {
+        if (!character || character.isNPC !== true || !character.character_dom) {
+            throw new TypeError("destroyNPC must refer to an NPC with a character DOM element.");
+        }
+
+        const element = character.character_dom;
+        if (character.destroyed) {
+            if (typeof character.destroy === "function") {
+                character.destroy();
+            } else {
+                element.remove();
+            }
+            return;
+        }
+
+        const framer = character.framer || this.framer;
+        framer.npcs = framer.npcs.filter((npc) => npc !== character);
+        framer.characters = framer.characters.filter((registered) => registered !== character);
+        framer.followingCharacters = framer.followingCharacters.filter(
+            (follower) => follower.character !== character
+        );
+        if (framer.interactionCharacter === character) {
+            framer.interactionCharacter = null;
+            framer.readyToDialog = false;
+        }
+        if (!element.isConnected) {
+            if (typeof character.destroy === "function") {
+                character.destroy();
+            } else {
+                element.remove();
+            }
+            return;
+        }
+        element.querySelectorAll(".pressToTalk").forEach((prompt) => prompt.remove());
+        element.classList.add("scene-npc-disappearing");
+
+        let finished = false;
+        const finish = () => {
+            if (finished) {
+                return;
+            }
+            finished = true;
+            element.removeEventListener("transitionend", onTransitionEnd);
+            window.clearTimeout(removalTimer);
+            if (typeof character.destroy === "function") {
+                character.destroy();
+            } else {
+                element.remove();
+            }
+        };
+        const onTransitionEnd = (event) => {
+            if (event.target === element && event.propertyName === "opacity") {
+                finish();
+            }
+        };
+        const removalTimer = window.setTimeout(finish, 400);
+        element.addEventListener("transitionend", onTransitionEnd);
     }
 
     registerScene(name, options = {}) {
@@ -201,6 +478,27 @@ class SceneManager {
     }
 
     handleInteraction(character) {
+        if (this.activeAlert && this.activeAlert.endOn === "last-interaction") {
+            this.close_alert(this.activeAlert);
+            return true;
+        }
+
+        if (!this.activeAlert) {
+            const pendingAlert = this.alerts.find((alert) =>
+                alert.state === "pending" &&
+                alert.startOn === "first-interaction" &&
+                (!alert.interactWith || alert.interactWith === character)
+            );
+            if (pendingAlert) {
+                if (pendingAlert.onInteract) {
+                    pendingAlert.onInteract(character);
+                }
+                pendingAlert.state = "queued";
+                this.show_next_alert();
+                return true;
+            }
+        }
+
         if (this.currentScene) {
             if (Array.isArray(this.currentScene.frames)) {
                 return true;
@@ -219,7 +517,11 @@ class SceneManager {
 
         const pendingScene = this.pendingScenes.find((scene) =>
             scene.startOn === "first-interaction" &&
-            (!character || scene.dialogs.some((dialog) => dialog.from === character || dialog.to === character))
+            (scene.interactWith
+                ? scene.interactWith === character
+                : (!character || scene.dialogs.some((dialog) =>
+                    dialog.from === character || dialog.to === character
+                )))
         );
 
         if (pendingScene) {
@@ -328,7 +630,18 @@ class SceneManager {
         if (!image) {
             throw new Error(`Flash-card image element is missing in scene "${scene.name}".`);
         }
-        image.src = this.resolve_scene_image(frame);
+        const imageSource = this.resolve_scene_image(frame);
+        const cardIndex = this.flashCardIndex;
+        this.preload_flash_card_image(imageSource).then((loadedImage) => {
+            if (
+                loadedImage &&
+                this.flashCardElement &&
+                this.flashCardIndex === cardIndex &&
+                this.flashCardElement.contains(image)
+            ) {
+                image.src = imageSource;
+            }
+        });
         image.alt = typeof card === "object" && card.dialog ? card.dialog.about : "";
 
         const counter = this.flashCardElement.querySelector(".scene-flashcard-counter");
@@ -365,11 +678,44 @@ class SceneManager {
         return true;
     }
 
+    preload_flash_card_image(source) {
+        if (this.flashCardImages.has(source)) {
+            return this.flashCardImages.get(source);
+        }
+
+        const image = new Image();
+        const promise = new Promise((resolve) => {
+            image.onload = () => {
+                const decoded = typeof image.decode === "function"
+                    ? image.decode().catch((error) => {
+                        if (!image.naturalWidth) {
+                            throw error;
+                        }
+                    })
+                    : Promise.resolve();
+                decoded.then(() => resolve(image)).catch((error) => {
+                    console.error(`Failed to decode scene image "${source}".`, error);
+                    resolve(null);
+                });
+            };
+            image.onerror = () => {
+                console.error(`Failed to load scene image "${source}".`);
+                resolve(null);
+            };
+            image.src = source;
+        });
+        this.flashCardImages.set(source, promise);
+        return promise;
+    }
+
     show_flash_card_dialog(dialog) {
         this.clear_dialog_timer();
         this.dialogIsTyping = false;
+        const dialogBox = document.querySelector(".dialog-box");
+        if (dialogBox) {
+            dialogBox.classList.remove("can-advance");
+        }
         if (!dialog || dialog.about.trim() === "") {
-            const dialogBox = document.querySelector(".dialog-box");
             if (dialogBox) {
                 dialogBox.classList.add("closed");
             }
@@ -397,8 +743,19 @@ class SceneManager {
             const talkSound = this.dialogCharacter &&
                 this.dialogCharacter.effects &&
                 this.dialogCharacter.effects.talk_sound;
-            if (talkSound && typeof talkSound.play === "function") {
-                talkSound.play();
+            if (
+                characterIndex % 3 === 0 &&
+                window.katSound &&
+                window.katSound.unlocked &&
+                talkSound &&
+                talkSound.paused
+            ) {
+                const playback = talkSound.play();
+                if (playback && typeof playback.catch === "function") {
+                    playback.catch((error) => {
+                        console.error("Failed to play dialog voice audio.", error);
+                    });
+                }
             }
 
             if (characterIndex >= this.dialogText.length) {
@@ -526,8 +883,19 @@ class SceneManager {
             const talkSound = this.dialogCharacter &&
                 this.dialogCharacter.effects &&
                 this.dialogCharacter.effects.talk_sound;
-            if (talkSound && typeof talkSound.play === "function") {
-                talkSound.play();
+            if (
+                characterIndex % 3 === 0 &&
+                window.katSound &&
+                window.katSound.unlocked &&
+                talkSound &&
+                talkSound.paused
+            ) {
+                const playback = talkSound.play();
+                if (playback && typeof playback.catch === "function") {
+                    playback.catch((error) => {
+                        console.error("Failed to play dialog voice audio.", error);
+                    });
+                }
             }
             if (characterIndex >= this.dialogText.length) {
                 this.clear_dialog_timer();
@@ -548,10 +916,36 @@ class SceneManager {
         }
 
         dialogBox.classList.remove("closed");
+        const currentDialog = this.currentScene &&
+            !Array.isArray(this.currentScene.frames) &&
+            this.currentScene.dialogs[this.dialogIndex];
+        dialogBox.classList.toggle(
+            "can-advance",
+            Boolean(currentDialog && currentDialog.finishOn == null)
+        );
         nameElement.textContent = character && character.name ? character.name : "";
         contentElement.textContent = text;
         if (portrait && character && character.sprite && character.sprite.face_card) {
-            portrait.src = character.sprite.face_card;
+            const faceCard = character.sprite.face_card;
+            const asset = character.spriteAssets && character.spriteAssets.get(faceCard);
+            const requestId = ++this.portraitRequestId;
+            if (asset) {
+                asset.promise.then((loadedAsset) => {
+                    if (loadedAsset && requestId === this.portraitRequestId) {
+                        portrait.src = faceCard;
+                    }
+                });
+            } else {
+                portrait.src = faceCard;
+            }
+        }
+        let advanceIndicator = dialogBox.querySelector(".dialog-next");
+        if (!advanceIndicator) {
+            advanceIndicator = document.createElement("span");
+            advanceIndicator.className = "dialog-next";
+            advanceIndicator.textContent = ">";
+            advanceIndicator.setAttribute("aria-hidden", "true");
+            dialogBox.appendChild(advanceIndicator);
         }
     }
 
@@ -624,6 +1018,7 @@ class SceneManager {
         const dialogBox = document.querySelector(".dialog-box");
         if (dialogBox) {
             dialogBox.classList.add("closed");
+            dialogBox.classList.remove("can-advance");
         }
 
         if (scene.killNPC) {
@@ -700,20 +1095,24 @@ class SceneManager {
     }
 
     canMove(character, top, left, previousTop, previousLeft) {
-        const width = character.character_dom.offsetWidth;
-        const height = character.character_dom.offsetHeight;
-        const previousRight = previousLeft + width;
-        const previousBottom = previousTop + height;
-        const nextRight = left + width;
-        const nextBottom = top + height;
+        const getBounds = typeof character.get_hitbox_bounds === "function"
+            ? (x, y) => character.get_hitbox_bounds(x, y)
+            : (x, y) => ({
+                left: x,
+                right: x + character.character_dom.offsetWidth,
+                top: y,
+                bottom: y + character.character_dom.offsetHeight
+            });
+        const previous = getBounds(previousLeft, previousTop);
+        const next = getBounds(left, top);
 
         return !this.barriers.some((barrier) => {
-            const overlapsVertically = top < barrier.bottom && nextBottom > barrier.top;
-            const overlapsHorizontally = left < barrier.right && nextRight > barrier.left;
-            const crossesLeft = previousRight <= barrier.left && nextRight > barrier.left;
-            const crossesRight = previousLeft >= barrier.right && left < barrier.right;
-            const crossesTop = previousBottom <= barrier.top && nextBottom > barrier.top;
-            const crossesBottom = previousTop >= barrier.bottom && top < barrier.bottom;
+            const overlapsVertically = next.top < barrier.bottom && next.bottom > barrier.top;
+            const overlapsHorizontally = next.left < barrier.right && next.right > barrier.left;
+            const crossesLeft = previous.right <= barrier.left && next.right > barrier.left;
+            const crossesRight = previous.left >= barrier.right && next.left < barrier.right;
+            const crossesTop = previous.bottom <= barrier.top && next.bottom > barrier.top;
+            const crossesBottom = previous.top >= barrier.bottom && next.top < barrier.bottom;
 
             return (barrier.sides && overlapsVertically && (crossesLeft || crossesRight)) ||
                 (barrier.topSide && overlapsHorizontally && crossesTop) ||
@@ -772,7 +1171,8 @@ class SceneManager {
                 const spritePath = style.sprite.includes("/")
                     ? style.sprite
                     : `assets/sprites/${character.codname}/${style.sprite}`;
-                element.style.backgroundImage = `url("${spritePath}")`;
+                previous.spritePath = character.currentSpritePath;
+                character.set_sprite(spritePath);
             } else if (key === "effect") {
                 return;
             } else if (key === "x" || key === "left") {
@@ -787,7 +1187,7 @@ class SceneManager {
             }
         });
         if (Object.keys(previous).length > 0) {
-            this.savedCharacterStyles.push({ element, previous });
+            this.savedCharacterStyles.push({ element, previous, character });
         }
         if (character === this.framer.character_main_scene) {
             this.framer.set_character_position(
@@ -807,8 +1207,11 @@ class SceneManager {
             this.savedSceneStyles = null;
         }
 
-        this.savedCharacterStyles.reverse().forEach(({ element, previous }) => {
+        this.savedCharacterStyles.reverse().forEach(({ element, previous, character }) => {
             Object.assign(element.style, previous);
+            if (previous.spritePath && typeof character.set_sprite === "function") {
+                character.set_sprite(previous.spritePath);
+            }
         });
         this.savedCharacterStyles = [];
         const mainCharacter = this.framer.character_main_scene;
@@ -924,6 +1327,7 @@ class SceneManager {
                 top: character.character_dom.style.top,
                 left: character.character_dom.style.left,
                 backgroundImage: character.character_dom.style.backgroundImage,
+                spritePath: character.currentSpritePath,
                 isAnimating: character.isAnimating,
                 isWalking: character.isWalking,
                 lastDirection: character.lastDirection
@@ -963,7 +1367,11 @@ class SceneManager {
                     element.style.top = snapshot.top;
                     element.style.left = snapshot.left;
                 }
-                element.style.backgroundImage = snapshot.backgroundImage;
+                if (snapshot.spritePath && typeof character.set_sprite === "function") {
+                    character.set_sprite(snapshot.spritePath);
+                } else {
+                    element.style.backgroundImage = snapshot.backgroundImage;
+                }
                 character.isAnimating = snapshot.isAnimating;
                 character.isWalking = snapshot.isWalking;
                 character.lastDirection = snapshot.lastDirection;
@@ -1052,7 +1460,7 @@ class SceneManager {
         const element = character.character_dom;
         const relative = style.relative !== false;
         if (style.sprite !== undefined) {
-            element.style.backgroundImage = `url("${this.resolve_sprite_path(character, style.sprite)}")`;
+            character.set_sprite(this.resolve_sprite_path(character, style.sprite));
         }
         if (style.x !== undefined || style.left !== undefined) {
             const x = Number(style.x ?? style.left);
@@ -1060,7 +1468,8 @@ class SceneManager {
                 throw new TypeError("Animation x/left must be a finite number.");
             }
             const currentLeft = parseFloat(element.style.left) || 0;
-            element.style.left = `${relative ? currentLeft + x : x}px`;
+            const left = relative ? currentLeft + x : x;
+            element.style.left = `${this.clamp_character_position(character, left, parseFloat(element.style.top) || 0).left}px`;
         }
         if (style.y !== undefined || style.top !== undefined) {
             const y = Number(style.y ?? style.top);
@@ -1068,7 +1477,8 @@ class SceneManager {
                 throw new TypeError("Animation y/top must be a finite number.");
             }
             const currentTop = parseFloat(element.style.top) || 0;
-            element.style.top = `${relative ? currentTop + y : y}px`;
+            const top = relative ? currentTop + y : y;
+            element.style.top = `${this.clamp_character_position(character, parseFloat(element.style.left) || 0, top).top}px`;
         }
         if (character === this.framer.character_main_scene) {
             this.framer.set_character_position(
@@ -1091,9 +1501,14 @@ class SceneManager {
 
         const startTop = parseFloat(character.character_dom.style.top) || 0;
         const startLeft = parseFloat(character.character_dom.style.left) || 0;
-        const endTop = startTop + Number(topOffset);
-        const endLeft = startLeft + Number(leftOffset);
-        const movementDistance = Math.hypot(Number(topOffset), Number(leftOffset));
+        const endPosition = this.clamp_character_position(
+            character,
+            startLeft + Number(leftOffset),
+            startTop + Number(topOffset)
+        );
+        const endTop = endPosition.top;
+        const endLeft = endPosition.left;
+        const movementDistance = Math.hypot(endTop - startTop, endLeft - startLeft);
         const movementDuration = duration || (movementDistance / speed) * 1000;
 
         if (movementDuration === 0) {
@@ -1110,13 +1525,16 @@ class SceneManager {
             const step = (now) => {
                 const elapsed = Math.min(now - startedAt, movementDuration);
                 const progress = elapsed / movementDuration;
-                const top = startTop + (endTop - startTop) * progress;
-                const left = startLeft + (endLeft - startLeft) * progress;
+                const position = this.clamp_character_position(
+                    character,
+                    startLeft + (endLeft - startLeft) * progress,
+                    startTop + (endTop - startTop) * progress
+                );
                 const frame = (Number(spriteIndex) + Math.floor(elapsed / frameInterval)) % 2;
 
-                character.walk(top, left, direction, frame);
+                character.walk(position.top, position.left, direction, frame);
                 if (character === this.framer.character_main_scene) {
-                    this.framer.set_character_position(top, left);
+                    this.framer.set_character_position(position.top, position.left);
                 }
 
                 if (elapsed >= movementDuration) {
@@ -1181,11 +1599,19 @@ class SceneManager {
             throw new TypeError("Animation position offsets must be finite numbers.");
         }
         const relative = options.relative !== false;
-        const endLeft = relative ? startLeft + offsetX : offsetX;
-        const endTop = relative ? startTop + offsetY : offsetY;
+        const requestedLeft = relative ? startLeft + offsetX : offsetX;
+        const requestedTop = relative ? startTop + offsetY : offsetY;
+        const endPosition = this.clamp_character_position(character, requestedLeft, requestedTop);
+        const endLeft = endPosition.left;
+        const endTop = endPosition.top;
         const frames = options.frames || (options.sprite ? [options.sprite] : []);
         if (!Array.isArray(frames) || frames.some((frame) => typeof frame !== "string")) {
             throw new TypeError("Animation frames must be an array of sprite paths.");
+        }
+        if (frames.length > 0 && typeof character.preload_sprites === "function") {
+            await character.preload_sprites(
+                frames.map((frame) => this.resolve_sprite_path(character, frame))
+            );
         }
         const fps = Number(options.fps ?? 8);
         const fallbackDuration = defaultDuration > 0
@@ -1203,12 +1629,16 @@ class SceneManager {
             element.style.left = `${endLeft}px`;
             element.style.top = `${endTop}px`;
             if (frames.length > 0) {
-                element.style.backgroundImage = `url("${this.resolve_sprite_path(character, frames[0])}")`;
+                character.set_sprite(this.resolve_sprite_path(character, frames[0]));
+            }
+            if (character === this.framer.character_main_scene) {
+                this.framer.set_character_position(endTop, endLeft);
             }
             return Promise.resolve(character);
         }
 
         const originalImage = element.style.backgroundImage;
+        const originalSpritePath = character.currentSpritePath;
         const frameDuration = 1000 / fps;
         const startedAt = performance.now();
         const wasAnimating = character.isAnimating;
@@ -1221,31 +1651,38 @@ class SceneManager {
             const tick = (now) => {
                 const elapsed = Math.min(now - startedAt, duration);
                 const progress = elapsed / duration;
-                element.style.left = `${startLeft + (endLeft - startLeft) * progress}px`;
-                element.style.top = `${startTop + (endTop - startTop) * progress}px`;
+                const position = this.clamp_character_position(
+                    character,
+                    startLeft + (endLeft - startLeft) * progress,
+                    startTop + (endTop - startTop) * progress
+                );
+                element.style.left = `${position.left}px`;
+                element.style.top = `${position.top}px`;
                 if (frames.length > 0) {
                     const frame = Math.floor(elapsed / frameDuration);
                     const frameIndex = options.loop === false
                         ? Math.min(frame, frames.length - 1)
                         : frame % frames.length;
-                    element.style.backgroundImage =
-                        `url("${this.resolve_sprite_path(character, frames[frameIndex])}")`;
+                    character.set_sprite(this.resolve_sprite_path(character, frames[frameIndex]));
                 }
                 if (elapsed >= duration) {
                     if (character.isWalking && typeof character.stop === "function") {
                         character.stop();
                     }
                     if (options.restoreSprite || frames.length === 0) {
-                        element.style.backgroundImage = originalImage;
+                        if (originalSpritePath && typeof character.set_sprite === "function") {
+                            character.set_sprite(originalSpritePath);
+                        } else {
+                            element.style.backgroundImage = originalImage;
+                        }
                     } else {
                         const finalFrame = options.loop === false
                             ? frames[frames.length - 1]
                             : frames[Math.floor(elapsed / frameDuration) % frames.length];
-                        element.style.backgroundImage =
-                            `url("${this.resolve_sprite_path(character, finalFrame)}")`;
+                        character.set_sprite(this.resolve_sprite_path(character, finalFrame));
                     }
                     if (character === this.framer.character_main_scene) {
-                        this.framer.set_character_position(endTop, endLeft);
+                        this.framer.set_character_position(position.top, position.left);
                     }
                     character.isAnimating = wasAnimating;
                     resolve(character);
@@ -1255,6 +1692,14 @@ class SceneManager {
             };
             window.requestAnimationFrame(tick);
         });
+    }
+
+    clamp_character_position(character, left, top) {
+        const element = character.character_dom;
+        return {
+            left: Math.max(0, Math.min(left, Math.max(0, window.innerWidth - element.offsetWidth))),
+            top: Math.max(0, Math.min(top, Math.max(0, window.innerHeight - element.offsetHeight)))
+        };
     }
 
     resolve_sprite_path(character, sprite) {

@@ -1,0 +1,76 @@
+body.deepstrech-world {
+    position: relative;
+    background-color: #09080d;
+    background-image:
+        linear-gradient(rgba(157, 35, 54, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(157, 35, 54, 0.08) 1px, transparent 1px),
+        repeating-linear-gradient(0deg, #0c0b12 0 24px, #111019 24px 48px, #08080d 48px 72px),
+        linear-gradient(180deg, #1c1018, #08080d 75%);
+    background-size: 8px 8px, 8px 8px, 100% 100%, 100% 100%;
+}
+
+.deepstrech-glitch-layer {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    background:
+        linear-gradient(176deg, transparent 0 19%, rgba(157, 35, 54, 0.24) 19% 20%, transparent 20% 100%),
+        linear-gradient(4deg, transparent 0 72%, rgba(103, 47, 128, 0.2) 72% 73%, transparent 73% 100%),
+        repeating-linear-gradient(0deg, transparent 0 47px, rgba(0, 0, 0, 0.52) 48px 51px, transparent 52px 86px),
+        linear-gradient(90deg, transparent 0 12%, rgba(150, 39, 61, 0.12) 12% 13%, transparent 13% 78%, rgba(98, 58, 127, 0.13) 78% 79%, transparent 79%);
+    animation: deepstrech-flicker 4s steps(2, end) infinite;
+}
+
+.deepstrech-world .character,
+.deepstrech-world .npc {
+    image-rendering: pixelated;
+    filter:
+        drop-shadow(3px 0 0 rgba(191, 37, 64, 0.42))
+        drop-shadow(-2px 0 0 rgba(85, 88, 180, 0.35))
+        drop-shadow(0 7px 0 rgba(0, 0, 0, 0.8));
+    animation: deepstrech-sprite-glitch 3.2s steps(2, end) infinite;
+}
+
+.deepstrech-world .npc .pressToTalk,
+.deepstrech-world .portal-object .pressToTalk {
+    border-color: #d45a68;
+    background: #1b1018;
+    box-shadow: 4px 4px 0 #050509, inset 2px 2px 0 #632a3a;
+}
+
+@keyframes deepstrech-flicker {
+    0%, 91%, 100% {
+        opacity: 0.72;
+        transform: translateX(0);
+    }
+    92% {
+        opacity: 1;
+        transform: translateX(3px);
+    }
+    94% {
+        opacity: 0.48;
+        transform: translateX(-2px);
+    }
+}
+
+@keyframes deepstrech-sprite-glitch {
+    0%, 96%, 100% {
+        transform: translate(0);
+    }
+    97% {
+        transform: translate(2px, -1px);
+    }
+    98% {
+        transform: translate(-2px, 1px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .deepstrech-glitch-layer,
+    .deepstrech-world .character,
+    .deepstrech-world .npc {
+        animation: none;
+    }
+}
