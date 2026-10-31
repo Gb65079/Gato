@@ -11,7 +11,7 @@ npcGroup.register_character("Grupo NPC", "NPCS", true);
 NPC1.register_character("NPC1", "NPC1", true);
 NPC2.register_character("NPC2", "NPC2", true);
 NPC3.register_character("NPC3", "NPC3", true);
-ancient.register_character("Biro", "biro", true);
+ancient.register_character("Biro", "biro", true, true);
 
 framer.set_character_main_scene(gato);
 framer.set_controls_to_character();
@@ -23,7 +23,6 @@ scene.enable_character_movement();
 
 gato.set_position("portal_reference");
 
-
 scene.create_scene("hello", {
     startOn: 'first-interaction',
     endOn: 'last-interaction',
@@ -31,7 +30,7 @@ scene.create_scene("hello", {
     {
         from: ancient,
         to: gato,
-        about: "Olá, viajante. Este Refúgio é um dos poucos lugares que ainda não foram consumidos pelas falhas."
+        about: "Olá, viajante. Este é o refugio, onde nos abrigamos desse mundo. Oque te traz até aqui?"
     },
     {
         from: gato,

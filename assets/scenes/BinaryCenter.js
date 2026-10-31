@@ -4,7 +4,7 @@ const ben = new Sprite();
 const admKey = new Sprite();
 
 gato.register_character("Gato", "gato", false);
-chromicos.register_character("Chromicos", "chromicos", true);
+chromicos.register_character("Chromicos", "chromicos", true, true);
 ben.register_character("Ben", "ben", false);
 admKey.register_character("ADMKEY", "portador_de_arquivo", true)
 admKey.character_dom.style.display = "none";
@@ -18,42 +18,23 @@ framer.register_characters([
     chromicos
 ]);
 const binaryProgress = assets.get("completedChallenges") || [];
+const teleportTo = binaryProgress.includes(7) &&
+    window.encryptedFiles.allCollected()? "final-commit.html" : "refuge.html";
 teleportPoints.createStoryPortal({
     direction: "left",
-    destinations: [
-        {
-            to: "refuge.html",
-            label: "Refúgio",
-            canTeleport: () => assets.get("talked-with-biro") === true
-        },
-        {
-            to: "final-commit.html",
-            label: "Commit Final",
-            canTeleport: () => assets.get("completedChallenges")?.includes(9) === true
-        }
-    ],
+    to: teleportTo,
     canTeleport: () => {
         const completed = assets.get("completedChallenges") || [];
         if (completed.includes(8) && !completed.includes(9)) {
+            scene.alert({ content: "O programa ainda precisa de atenção." });
             return false;
         }
-        const canReachAnyDestination =
-            assets.get("talked-with-biro") === true ||
-            (completed.includes(1) &&
-                (assets.get("admin-key-available") !== true ||
-                    assets.get("have-admin-file") === true)) ||
-            completed.includes(9);
-        if (canReachAnyDestination) {
-            return true;
-        }
 
-        if (!scene.activeAlert) {
-            const content = assets.get("talked-with-biro") !== true
-                ? "Você precisa falar com Biro primeiro."
-                : "Colete o arquivo de administrador no canto da sala antes de seguir para o Bazar.";
-            scene.alert({ content });
+        if (!assets.get("have-admin-file")) {
+            scene.alert({ content: "Colete o arquivo de administrador primeiro." });
+            return false;
         }
-        return false;
+        return true;
     }
 });
 ben.set_position(-500, -10);
@@ -71,7 +52,7 @@ scene.create_scene("power_chromicos", {
     {
         from: chromicos,
         to: gato,
-        about: "Sim. Sou Chromicos, guardião deste mundo. Ele foi construído por código, mas muitas partes se corromperam."
+        about: "Sim. Sou Chromicos, guardião deste mundo. O NPC mais sabio, como preferir."
     },
     {
         from: gato,
@@ -81,7 +62,7 @@ scene.create_scene("power_chromicos", {
     {
         from: chromicos,
         to: gato,
-        about: "Para encontrar a saída, você precisará aprender a reparar pequenos programas."
+        about: "Para encontrar a saída, você precisará aprender a reparar o programa desse mundo."
     },
     {
         from: gato,
@@ -101,7 +82,7 @@ scene.create_scene("power_chromicos", {
     {
         from: chromicos,
         to: gato,
-        about: "Não poderei acompanhá-lo pela jornada. Por isso, quero apresentar você ao meu aprendiz."
+        about: "Não poderei acompanhá-lo pela jornada, pois preciso depurar, para que consiga programar. Por isso, quero apresentar você ao meu aprendiz."
     },
 ],
     afterItDoes: async () => {
@@ -129,12 +110,12 @@ scene.create_scene("wake-ben", {
     {
         from: ben,
         to: gato,
-        about: "Olá, Gato"
+        about: "Olá, Gato."
     },
     {
         from: chromicos,
         to: gato,
-        about: "Preciso entrar em repouso. Ben conhece o caminho e vai guiar você. Espero vê-los quando o programa estiver pronto."
+        about: "Preciso entrar em repouso para depurar. Ben conhece o caminho e vai guiar você. Espero vê-los quando o programa estiver pronto."
     },
     {
         from: gato,
@@ -144,7 +125,7 @@ scene.create_scene("wake-ben", {
     {
         from: ben,
         to: gato,
-        about: "Há um arquivo de administrador guardado no canto, mas a porta está bloqueada. Vou abrir a tela de código para você completar os comandos que faltam."
+        about: "Há um arquivo de administrador guardado no canto, mas o NPC está travado. Vou abrir a tela de código para você completar os comandos que faltam."
     }
 ],
     afterItDoes: () => {
@@ -230,7 +211,7 @@ if (assets.get("have-ben")) {
                 startOn: "immediate",
                 endOn: "last-interaction",
                 dialogs: [
-                    { from: chromicos, to: gato, about: "Ben me contou que vocês reuniram os quatro arquivos e Piona os decifrou. O programa está quase pronto." },
+                    { from: chromicos, to: gato, about: "Parece que vocês reuniram os quatro fragmentos do programa, ele está quase finalizado agora." },
                     { from: ben, to: gato, about: "Encontramos uma falha na ordem dos comandos. Complete a linha que executa a saída só depois da validação." },
                     { from: chromicos, to: gato, about: "Revise com calma. Quando esse erro for corrigido, abrirei o terminal final." }
                 ],
@@ -247,7 +228,7 @@ if (assets.get("have-ben")) {
             startOn: "immediate",
             endOn: "last-interaction",
             dialogs: [
-                { from: chromicos, to: gato, about: "A porta abriu e você recuperou o arquivo de administrador. Agora Célio poderá ajudar a restaurar as permissões." }
+                { from: chromicos, to: gato, about: "Você pegou o arquivo de administrador. Agora Célio poderá ajudar a restaurar as permissões." }
             ],
             afterItDoes: () => assets.save("binary-return-seen", true),
             disableControls: true

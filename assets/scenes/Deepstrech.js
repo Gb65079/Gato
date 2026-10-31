@@ -24,7 +24,8 @@ scene.enable_character_movement();
 const completed = assets.get("completedChallenges") || [];
 const returnedWithAllFiles = completed.includes(7) &&
     window.encryptedFiles.allCollected();
-const pionaExit = returnedWithAllFiles ? "binary-room.html" : "refuge.html";
+const pionaExit = assets.get("laboratory-discovery-seen")? 
+ (returnedWithAllFiles ? "binary-room.html" : "garden.html") : "garden.html";
 teleportPoints.createStoryPortal({
     direction: "left",
     to: pionaExit,

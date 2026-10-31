@@ -11,7 +11,7 @@ framer.register_characters([
 
 musicBackground.preload = "auto";
 musicBackground.volume = 0.1;
-musicBackground.src = "assets/effects/Distant.mp3";
+musicBackground.src = "assets/effects/game_start.mp3";
 const playOpeningMusic = () => {
     if (!window.katSound || !window.katSound.unlocked || !musicBackground.paused) {
         return;

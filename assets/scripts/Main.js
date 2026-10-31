@@ -138,6 +138,20 @@ window.katCodeHighlighter = {
     }
 };
 
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) scene.alert({
+        startOn: "immediate",
+        endOn: "last-interaction",
+        content: "ERR: saida inesperada, reiniciando tudo..."
+    })
+
+    setTimeout(()=>{
+        localStorage.clear();
+        assets.save("started", true);
+        window.location.href="/refuge.html"
+    },5000)
+});
+
 ;(() => {
     const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextConstructor) {

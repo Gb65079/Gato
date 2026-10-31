@@ -413,11 +413,9 @@
 
 .game-ending-video-play {
     margin: 12px auto 0;
-    border: 3px solid #241432;
     padding: 10px 16px;
     color: #fff;
     background: #241432;
-    box-shadow: 3px 3px 0 #0b0711;
     font: bold 14px "Courier New", Courier, monospace;
     cursor: pointer;
 }
@@ -532,6 +530,102 @@
 .game-ending-restart:focus-visible {
     color: #160d20;
     background: #a7f3b4;
+}
+
+.game-ending.is-terminal-mode {
+    background-color: #000000 !important;
+    color: #ffffff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    overflow-y: auto;
+}
+
+.game-ending.is-terminal-mode .game-ending-scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 800px;
+    padding: 30px;
+    margin: auto;
+    box-sizing: border-box;
+}
+
+.terminal-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.game-ending-message.terminal-text {
+    font-family: 'Courier New', Courier, monospace;
+    color: #00ff66;
+    font-size: 1.8rem;
+    padding: 24px 32px;
+    text-align: center;
+    letter-spacing: 1.5px;
+    max-width: 90%;
+    word-break: break-word;
+    margin: 0;
+}
+
+.game-ending-message.terminal-text::after {
+    content: "_";
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Caixa de créditos estilizada estilo terminal / retro */
+.game-ending.is-terminal-mode .game-ending-credits {
+    background-color: #0d0d0d;
+    border: 2px solid #00ff66;
+    padding: 20px 40px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(0, 255, 102, 0.2);
+}
+
+.game-ending.is-terminal-mode .game-ending-credits h2 {
+    color: #00ff66;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+}
+
+.game-ending.is-terminal-mode .game-ending-developers {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: #00ff66;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.game-ending.is-terminal-mode .game-ending-restart {
+    margin-top: 10px;
+    background-color: #00ff66;
+    color: #000;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
 }
 
 .character.game-ending-depart,
@@ -711,6 +805,21 @@
 .final-terminal.is-running {
     border-color: #a7f3b4;
     box-shadow: inset 0 0 0 5px #61716d, 0 12px 0 #0b0711, 0 0 60px rgba(167, 243, 180, 0.38);
+}
+
+body.fade-to-white {
+    transition: background-color 2s ease-in-out;
+    background-color: #ffffff !important;
+}
+
+body.fade-to-white * {
+    transition: background-color 2s ease-in-out, color 2s ease-in-out, border-color 2s ease-in-out, opacity 2s ease-in-out;
+    background-color: #ffffff !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+    box-shadow: none !important;
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 @keyframes terminal-line-appear {

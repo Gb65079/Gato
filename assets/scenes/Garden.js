@@ -80,7 +80,7 @@ const deepstrech = teleportPoints.createStoryPortal({
 
 teleportPoints.createStoryPortal({
     direction: "bottom",
-    to: "garden.html"
+    to: "marketplace.html"
 });
 framer.generateGlitches({ i: "garden-path", squaresCount: 50, reference: deepstrech });
 

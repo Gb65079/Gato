@@ -3,7 +3,7 @@ const celio = new Sprite();
 const ben = new Sprite();
 
 gato.register_character("Gato", "gato", false);
-celio.register_character("Célio", "celio", true);
+celio.register_character("Célio", "celio", true, true);
 celio.sprite.face_card = "assets/sprites/celio/animation_1.png";
 celio.character_dom.style.width = "150px";
 celio.character_dom.style.height = "150px";
@@ -30,26 +30,26 @@ scene.create_scene("talk-to-celio", {
         {
             from: celio,
             to: gato,
-            about: "Bem-vindos ao Ferro Velho. Eu sou Célio; vendo peças e scripts para recuperar permissões perdidas."
+            about: "Bem-vindos ao Ferro Velho. Eu sou Célio; vendo peças e scripts."
         },
         {
             from: celio,
             to: ben,
-            about: "Se um erro fizer o Gato perder o acesso de administrador, tragam-no de volta. Por confiar em você, ajudo sem cobrar."
+            about: "Se precisar, tenho restauradores de arquivo de administrador! sem custo."
         },
         {
             from: gato,
             to: celio,
             about: assets.get("admin-access-lost") === true
                 ? "Perdi minhas permissões de administrador. Você pode me ajudar?"
-                : "Encontrei um arquivo de administrador. Você tem um script que ajude a recuperar funções do mundo?"
+                : "Encontrei um arquivo de administrador. Mas ela está inativa, pode reativar?"
         },
         {
             from: celio,
             to: gato,
             about: assets.get("admin-access-lost") === true
                 ? "Confio em Ben. Posso recuperar suas permissões; fale comigo quando estiver pronto."
-                : "Tenho um script para liberar uma ferramenta de reparo, mas ele precisa do alvo correto."
+                : "Sim, posso! também tenho um script para liberar uma ferramenta de reparo, mas ele precisa do alvo correto. Numa cajadada só você sai com tudo!"
         }
     ],
     afterItDoes: () => {
@@ -152,12 +152,70 @@ if (marketDestination !== "marketplace.html") {
         on: "interact",
         canTeleport: recoveringAdmin
             ? () => assets.get("admin-access-lost") !== true
-            : () => assets.get("completedChallenges")?.includes(2) === true
+            : () => {
+                const concludedTask = assets.get("completedChallenges")?.includes(2) === true
+                if(concludedTask) return true;
+                else {
+                 scene.alert({
+                    startOn: "immediate",
+                    endOn: "last-interaction",
+                    content: "Colete o script de concerto primeiro."
+                  });
+
+                    return false;
+                }
+            }
     });
 
-    scene.createPortal("top").teleport({
+    if(assets.get("completedChallenges")?.includes(5)) scene.createPortal("top").teleport({
         to: "laboratorio.html",
-        on: "interact"
+        on: "interact",
+        canTeleport: () => {
+            if(!assets.get("celio-introduced")) { 
+              scene.alert({
+                 startOn: "immediate",
+                 endOn: "last-interaction",
+                 content: "Fale com Célio primeiro"
+              });
+                return false;
+            }
+            if(assets.get("admin-access-lost")) {
+                
+              scene.alert({
+                 startOn: "immediate",
+                 endOn: "last-interaction",
+                 content: "Consiga permissão de administrador primeiro"
+              });
+                return false;
+            }
+
+            return true;
+        }
+    });
+    else scene.createPortal("bottom").teleport({
+        to: "refuge.html",
+        on: "interact",
+        canTeleport: () => {
+            if(!assets.get("celio-introduced")) { 
+              scene.alert({
+                 startOn: "immediate",
+                 endOn: "last-interaction",
+                 content: "Fale com Célio primeiro"
+              });
+                return false;
+            }
+            if(assets.get("admin-access-lost")) {
+                
+              scene.alert({
+                 startOn: "immediate",
+                 endOn: "last-interaction",
+                 content: "Consiga permissão de administrador primeiro"
+              });
+                return false;
+            }
+
+            return true;
+        }
     });
 }
 
@@ -185,7 +243,7 @@ window.katQuestFollowUp({
         {
             from: celio,
             to: gato,
-            about: "A ferramenta de reparo está liberada. Agora pode seguir para o Jardim."
+            about: "A ferramenta de reparo está liberada, sua permissão também. Agora pode seguir para o Jardim."
         }
     ]
 });

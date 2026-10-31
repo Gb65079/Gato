@@ -282,7 +282,7 @@ class Framer {
                 direction = 'right';
                 isMoving = true;
             } else if (
-                keysJustPressed['KeyE'] &&
+                (keysJustPressed['KeyE'] || keysJustPressed["Enter"]) &&
                 !this.codeBox &&
                 (
                     this.readyToDialog ||
@@ -381,6 +381,7 @@ class Framer {
 
             this.update_following_characters();
             keysJustPressed['KeyE'] = false;
+            keysJustPressed["Enter"] = false;
             keysJustPressed['KeyP'] = false;
             requestAnimationFrame(gameLoop);
         };

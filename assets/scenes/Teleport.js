@@ -42,9 +42,9 @@ scene.create_scene("teleport-arrival", {
     startOn: "immediate",
     endOn: "last-interaction",
     dialogs: [
-        { from: ben, to: gato, about: "A extensão nos trouxe até a tela em que você apareceu. O último fragmento está ali, mas as plataformas estão corrompidas." },
-        { from: gato, to: ben, about: "Qualquer plataforma serve para chegar até ele?" },
-        { from: ben, to: gato, about: "Não. O teletransporte só executa quando o sinal está verde. Complete a condição e o arquivo ficará acessível." }
+        { from: ben, to: gato, about: "A extensão nos trouxe atrás da tela em que você apareceu. O último fragmento está ali, mas os bits estão descarregados." },
+        { from: gato, to: ben, about: "Qualquer 0 ou 1 serve para chegar até ele?" },
+        { from: ben, to: gato, about: "Não. O teletransporte só executa quando o sinal verde está ativo. Complete a condição e o arquivo ficará acessível." }
     ],
     afterItDoes: () => document.dispatchEvent(new CustomEvent("kat:challenge-7-ready")),
     disableControls: true
@@ -93,7 +93,7 @@ window.katQuestFollowUp({
         {
             from: ben,
             to: gato,
-            about: "Isso! O resto da divisão indicou a plataforma correta, e o teletransporte foi ativado."
+            about: "Isso! O resto da divisão indicou o bit correto, e o teletransporte foi ativado."
         },
         {
             from: ben,

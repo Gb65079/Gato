@@ -121,7 +121,7 @@ class Sprite {
         }
     }
       
-    register_character(realname, name, NPC = false) {
+    register_character(realname, name, NPC = false, talksound) {
         this.name = realname;
         this.codname = name
 
@@ -160,7 +160,7 @@ class Sprite {
 
             this.sprite.face_card = 'assets/sprites/' + name + '/face_card.png'
 
-            this.effects.talk_sound = 'assets/sprites/SpriteSheets/npc_talk.wav'
+            this.effects.talk_sound = 'assets/sprites/SpriteSheets/' + (talksound? name + "_talk.mp3" : "npc_talk.wav");
             this.effects.walk_sound = 'assets/sprites/SpriteSheets/walk.wav'
 
             this.character_dom.classList.add('npc');

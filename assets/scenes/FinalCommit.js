@@ -6,7 +6,7 @@ gato.register_character("Gato", "gato", false);
 if (assets.get("have-ben")) {
     ben.register_character("Ben", "ben", false);
 }
-chromicos.register_character("Chromicos", "chromicos", true);
+chromicos.register_character("Chromicos", "chromicos", true, true);
 
 framer.set_character_main_scene(gato);
 framer.set_controls_to_character();
@@ -17,6 +17,9 @@ if (assets.get("have-ben")) {
     framer.character_follow_main_character(ben);
 }
 chromicos.set_position(Math.max(240, window.innerWidth * 0.62), Math.max(150, window.innerHeight * 0.58));
+
+chromicos.character_dom.style.height = "250px";
+chromicos.character_dom.style.width = "250px";
 scene.enable_character_movement();
 
 const terminal = document.createElement("div");
@@ -70,8 +73,20 @@ window.finalTerminal = {
         if (window.katSound) {
             window.katSound.play("success");
         }
+
+        triggerWhiteout();
     }
 };
+
+function triggerWhiteout() {
+    document.body.classList.add("fade-to-white");
+
+    document.dispatchEvent(new CustomEvent("kat:simulation-complete"));
+    setTimeout(()=>{
+        document.body.classList.remove("fade-to-white");
+        localStorage.clear();
+    },1000)
+}
 
 if (!assets.get("final-terminal-intro-seen")) {
     scene.create_scene("final-terminal", {

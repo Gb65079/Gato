@@ -419,8 +419,7 @@
         }
         window.setTimeout(closeChallenge, 1100);
     }
-
-    function showEnding() {
+function showEnding() {
         overlay.hidden = true;
         const ending = document.createElement("section");
         ending.className = "game-ending";
@@ -429,23 +428,24 @@
         ending.setAttribute("aria-live", "polite");
         ending.innerHTML = `
             <div class="game-ending-scene">
-                <p class="game-ending-kicker">PROGRAMA CONCLUÍDO</p>
+                <p class="game-ending-kicker">programa executado.</p>
                 <div class="game-ending-visual">
                     <img class="game-ending-portrait" alt="" hidden>
                     <video class="game-ending-video" playsinline muted preload="auto" hidden>
                         <source src="assets/sprites/SpriteSheets/KAT_bye.mp4" type="video/mp4">
                     </video>
-                    <p class="game-ending-dialog" aria-live="polite"></p>
+                    <p class="game-ending-dialog" aria-live="polite" hidden></p>
                 </div>
                 <button class="game-ending-video-play" type="button" hidden>Reproduzir vídeo</button>
-                <p class="game-ending-message" hidden>Simulação terminada por: KAT</p>
-                <section class="game-ending-credits" aria-label="Créditos" hidden>
-                    <h2>CRÉDITOS</h2>
-                    <p>Desenvolvimento</p>
+                <div class="terminal-container" style="display: none;">
+                    <p class="game-ending-message terminal-text"></p>
+                </div>
+                <section class="game-ending-credits" aria-label="Créditos" style="display: none;">
+                    <h2>Desenvolvedores</h2>
                     <ul class="game-ending-developers"></ul>
                     <button class="game-ending-music" type="button" hidden>Tocar música final</button>
                 </section>
-                <button class="game-ending-restart" type="button" hidden>Jogar novamente</button>
+                <button class="game-ending-restart" type="button" style="display: none;">Jogar novamente</button>
             </div>`;
         document.body.appendChild(ending);
 
@@ -453,12 +453,14 @@
         const portrait = ending.querySelector(".game-ending-portrait");
         const video = ending.querySelector(".game-ending-video");
         const videoPlayButton = ending.querySelector(".game-ending-video-play");
+        const terminalContainer = ending.querySelector(".terminal-container");
         const message = ending.querySelector(".game-ending-message");
         const credits = ending.querySelector(".game-ending-credits");
         const developers = ending.querySelector(".game-ending-developers");
         const musicButton = ending.querySelector(".game-ending-music");
         const restart = ending.querySelector(".game-ending-restart");
         const characters = document.querySelectorAll(".character, .npc");
+        
         const developerNames = [
             "EZEQUIEL",
             "YASMIN",
@@ -467,11 +469,12 @@
         ];
         developerNames.forEach((name) => {
             const developer = document.createElement("li");
-            developer.textContent = name;
+            developer.textContent = "> " + name;
             developers.appendChild(developer);
         });
 
-        const endingMusic = new Audio("assets/sprites/SpriteSheets/game_end.mp3");
+        // Música original do código mantida
+        const endingMusic = new Audio("assets/effects/game_end.mp3");
         endingMusic.preload = "auto";
         endingMusic.volume = 0.65;
         const playEndingMusic = () => {
@@ -505,11 +508,13 @@
         }, reducedMotion ? 0 : 700);
 
         const showFarewell = (text) => {
+            dialog.hidden = false;
             dialog.textContent = text;
             dialog.classList.remove("is-speaking");
             requestAnimationFrame(() => dialog.classList.add("is-speaking"));
         };
-        const showPortrait = async (source, alt, text) => {
+
+        const showPortrait = async (source, alt, text, duration) => {
             portrait.src = source;
             portrait.alt = alt;
             portrait.hidden = false;
@@ -517,30 +522,55 @@
             showFarewell(text);
             await new Promise((resolve) => requestAnimationFrame(resolve));
             portrait.classList.add("is-visible");
-            await wait(reducedMotion ? 2400 : 5500);
+            await wait(reducedMotion ? 300 : duration);
             portrait.classList.remove("is-visible");
-            await wait(reducedMotion ? 0 : 1100);
+            await wait(reducedMotion ? 0 : 500);
             portrait.hidden = true;
         };
 
+        const typeTerminalText = (element, text, speed = 50) => {
+            return new Promise((resolve) => {
+                terminalContainer.style.display = "flex";
+                element.textContent = "";
+                let index = 0;
+                function type() {
+                    if (index < text.length) {
+                        element.textContent += text.charAt(index);
+                        index++;
+                        setTimeout(type, speed);
+                    } else {
+                        resolve();
+                    }
+                }
+                type();
+            });
+        };
+
         void (async () => {
+            // 1ª Cena: Chromicos
             await showPortrait(
                 "assets/sprites/SpriteSheets/Chromicos_bye.png",
                 "Chromicos se despedindo de KAT",
-                "Chromicos: Parabéns, KAT, siga sua viagem."
+                "Chromicos: Você conseguiu, siga sua jornada.",
+                7000
             );
+
+            // 2ª Cena: Ben
             await showPortrait(
                 "assets/sprites/SpriteSheets/Ben_bye.png",
                 "Ben se despedindo de KAT",
-                "Ben: Você conseguiu! Obrigado por salvar este mundo comigo."
+                "Ben: Foi ótimo te acompanhar, Gato.",
+                7000
             );
 
-            showFarewell("KAT: Obrigado por tudo. Espero que este mundo fique bem.");
+            dialog.hidden = true;
+            
+            // 3ª Cena: Vídeo original do código (KAT_bye.mp4)
             video.hidden = false;
             video.currentTime = 0;
             videoPlayButton.addEventListener("click", () => {
                 if (video.dataset.failed === "true") {
-                    finishEnding();
+                    startTerminalSequence();
                     return;
                 }
                 videoPlayButton.hidden = true;
@@ -552,8 +582,9 @@
             });
 
             video.addEventListener("ended", () => {
-                window.setTimeout(finishEnding, reducedMotion ? 0 : 1400);
+                window.setTimeout(startTerminalSequence, reducedMotion ? 0 : 1000);
             }, { once: true });
+            
             video.addEventListener("error", () => {
                 console.error("Failed to load the KAT farewell video.");
                 video.dataset.failed = "true";
@@ -561,6 +592,7 @@
                 videoPlayButton.textContent = "Continuar";
                 videoPlayButton.hidden = false;
             }, { once: true });
+
             video.play().catch((error) => {
                 console.error("Autoplay was blocked for the KAT farewell video.", error);
                 video.controls = true;
@@ -570,18 +602,33 @@
             console.error("Failed to play the ending cutscene.", error);
         });
 
-        function finishEnding() {
-            if (!credits.hidden) {
+        // 4ª e 5ª Cenas: Transição para o terminal e créditos
+        function startTerminalSequence() {
+            if (ending.classList.contains("is-terminal-mode")) {
                 return;
             }
             video.pause();
             video.hidden = true;
             videoPlayButton.hidden = true;
-            message.hidden = false;
-            credits.hidden = false;
-            credits.classList.add("is-credits");
-            restart.hidden = false;
-            restart.focus();
+            dialog.hidden = true;
+            
+            const visualContainer = ending.querySelector(".game-ending-visual");
+            const kicker = ending.querySelector(".game-ending-kicker");
+            if (visualContainer) visualContainer.style.display = "none";
+            if (kicker) kicker.hidden = true;
+            
+            // Ativa o modo de tela preta total (estilo terminal)
+            ending.classList.add("is-terminal-mode");
+
+            // 4ª Cena: Frase digitada no terminal
+            typeTerminalText(message, "Simulação executada por: KAT", 45).then(() => {
+                // 5ª Cena: Revela os créditos e a caixinha com os devs logo abaixo
+                window.setTimeout(() => {
+                    credits.style.display = "block";
+                    restart.style.display = "inline-block";
+                    restart.focus();
+                }, 1000);
+            });
         }
 
         restart.addEventListener("click", () => {
